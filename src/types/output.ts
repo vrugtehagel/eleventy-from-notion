@@ -7,11 +7,11 @@
  *   access to both the rich text (a string of HTML) as well as plain text, as
  *   Notion itself does not allow users to make this distinction.
  * - User-related page properties, such as the `"people"` type, convert to
- *   simple objects with a `name` property, and an `email` properties if an
- *   email address was found.
+ *   simple objects with a `name` property, and an `email` property if an email
+ *   address was found.
  * - "date" page properties convert to `{ start, end, timezone }` objects. Not
  *   all dates are specified as ranges, but the distinction is made within the
- *   single `"date"` page property itself, rather than having different page
+ *   single "date" page property itself, rather than having different page
  *   properties for it. The `end` and `timezone` properties are therefore
  *   omitted according to the property's configuration.
  * - Empty properties may be mapped to `null` depending on their type. For

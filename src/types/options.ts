@@ -117,7 +117,8 @@ export type InlineFormatters = {
   color?: (content: string, info: { color: string }) => string;
 };
 
-/** Block formatters. Each formatter receives three arguments; first, its
+/** A set of function defining how to format a block into a string (usually a
+ * string of HTML). Each formatter receives three arguments; first, its
  * contents, already stringified to HTML. For block types without content, such
  * as the `"divider"` type or the `"image"` type, an empty string is passed.
  * For the second argument, the children of the block is passed, as an

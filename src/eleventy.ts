@@ -20,7 +20,6 @@ export async function EleventyFromNotion(
   const { input } = userConfig.directories;
   const outputPath = config.getOutputPath(input, options.output);
   const extension = config.getExtension(options.extension);
-  const databaseId = config.getDatabaseId(options.database);
   const { verbose = false } = options;
   await fs.mkdir(outputPath, { recursive: true });
   const files = await fs.readdir(outputPath);
@@ -32,6 +31,7 @@ export async function EleventyFromNotion(
   const builder = new Builder(options);
   const since = meta.lastUpdated ?? 0;
   if (verbose) console.log("Retrieving a list of updated Notion pages…");
+  const databaseId = config.getDatabaseId(options.database);
   const pages = await builder.listUpdatedPages(databaseId, since, options);
   const found = Object.keys(pages).length;
   if (options.skipModified) await removeModified(pages, since, outputPath);

@@ -120,10 +120,16 @@ configured to be something else, like `.njk`). An additional `.notion` file is
 created in this directory, which contains a bit of JSON that the plugin uses to
 keep track of its state between subsequent runs. If the directory used for
 imports is not empty, and it doesn't contain the `.notion` file, the import is
-immediately aborted to avoid overwriting files unintentionally. In other words;
-do not delete the `.notion` file. If you need to forcefully import all posts,
-and you don't want to delete the folder in its entirety, delete the contents of
-the `.notion` file rather than the file itself.
+immediately aborted to avoid overwriting files unintentionally.
+
+Notion pages are only imported if they have been updated since the last
+successful import. In particular, this means that changes to the database
+itself, such as the adding or removing of a column, does _not_ reimport all the
+pages. This is intentional; however, if you need to re-import all of your posts,
+either delete the _contents_ of the `.notion` file (do not delete the file
+itself!) or delete the output directory entirely.
+
+### Permalinks
 
 For permalinks, there are two main recommended ways of setting things up. The
 first option is for when you want to be able to decide the permalink from within

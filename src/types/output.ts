@@ -14,6 +14,9 @@
  *   single `"date"` page property itself, rather than having different page
  *   properties for it. The `end` and `timezone` properties are therefore
  *   omitted according to the property's configuration.
+ * - Empty properties may be mapped to `null` depending on their type. For
+ *   example, the "select" property is mapped to `null` when empty, but the
+ *   multiselect property is mapped to `[]` when no option was selected.
  *
  * Since mapping page properties to nested keys is permitted, this is a
  * recursive type. */

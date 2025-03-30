@@ -53,9 +53,9 @@ const defaults: BlockFormatters = {
     const { cells } = info;
     if (info.parent?.type != "table") throw Error("Unreachable");
     const isFirstRow = info.previous?.type != "tableRow";
-    const isHeaderRow = isFirstRow && info.parent.hasRowHeader;
+    const isHeaderRow = isFirstRow && info.parent.hasColumnHeader;
     if (isHeaderRow) return `<tr><th>${cells.join("</th><th>")}</th></tr>`;
-    const hasHeader = info.parent.hasColumnHeader;
+    const hasHeader = info.parent.hasRowHeader;
     if (!hasHeader) return `<tr><td>${cells.join("</td><td>")}</td></tr>`;
     const first = `<th>${cells[0]}</th>`;
     const others = `<td>${cells.slice(1).join("</td><td>")}</td>`;

@@ -1,0 +1,11 @@
+{
+  "name": "@vrugtehagel/eleventy-from-notion",
+  "version": "0.0.1",
+  "exports": "./mod.ts",
+  "imports": {
+    "@notionhq/client": "npm:@notionhq/client@^2.3"
+  },
+  "publish": {
+    "include": ["src/**", "mod.ts", "README.md", "LICENSE"]
+  }
+}

@@ -125,4 +125,19 @@ do not delete the `.notion` file. If you need to forcefully import all posts,
 and you don't want to delete the folder in its entirety, delete the contents of
 the `.notion` file rather than the file itself.
 
+For permalinks, there are two main recommended ways of setting things up. The first option is for when you want to be able to decide the permalink from within the comfort of Notion. To do this, configure a page property (i.e. database column) with a type of "URL". This type is important; if you decide to use "text", then the page property contains rich text, which generates a `{ rich, plain }` pair in the page's front matter. Eleventy then cannot process your templates anymore because it expects a string for the `permalink`. This problem is avoided by using the "URL" type. Note that you must then also configure your schema to map this page property to front matter; for example, if the page property is named "Link" then add `{ name: "Link", rename: "permalink" }` to your `schema` array.
+
+The second way of setting up permalinks is through a computed property in Eleventy. You are free to add files to the specified output directory (which defaults to `notion/`), as long as their names don't start with a valid Notion ID (a UUID with or without dashes). For example, let's say you configured your output directory to be `output: "external/notion/"`. Then, you can add a file `external/notion/notion.11tydata.js` containing, for example:
+
+```js
+export default {
+  permalink: function (data) {
+    // Assuming a rich text `title` field is configured:
+    return `/blog/${this.slugify(data.title.plain)}/`;
+  }
+}
+```
+
+This way, each post generates its own permalink dynamically.
+
 [1]: https://developers.notion.com/docs/create-a-notion-integration

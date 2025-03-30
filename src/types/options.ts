@@ -198,7 +198,10 @@ export type BlockFormatters = {
   code?: (
     content: string,
     children: "",
-    info: BaseBlockInfo<"code"> & { language: string; caption: string },
+    info: BaseBlockInfo<"code"> & {
+      language: string;
+      caption: { rich: string; plain: string };
+    },
   ) => string;
   callout?: (
     content: string,
@@ -247,32 +250,50 @@ export type BlockFormatters = {
   embed?: (
     content: "",
     children: "",
-    info: BaseBlockInfo<"embed"> & { caption: string; url: string },
+    info: BaseBlockInfo<"embed"> & {
+      caption: { rich: string; plain: string };
+      url: string;
+    },
   ) => string;
   bookmark?: (
     content: "",
     children: "",
-    info: BaseBlockInfo<"bookmark"> & { caption: string; url: string },
+    info: BaseBlockInfo<"bookmark"> & {
+      caption: { rich: string; plain: string };
+      url: string;
+    },
   ) => string;
   image?: (
     content: "",
     children: "",
-    info: BaseBlockInfo<"image"> & { caption: string; url: string },
+    info: BaseBlockInfo<"image"> & {
+      caption: { rich: string; plain: string };
+      url: string;
+    },
   ) => string;
   video?: (
     content: "",
     children: "",
-    info: BaseBlockInfo<"video"> & { caption: string; url: string },
+    info: BaseBlockInfo<"video"> & {
+      caption: { rich: string; plain: string };
+      url: string;
+    },
   ) => string;
   pdf?: (
     content: "",
     children: "",
-    info: BaseBlockInfo<"pdf"> & { caption: string; url: string },
+    info: BaseBlockInfo<"pdf"> & {
+      caption: { rich: string; plain: string };
+      url: string;
+    },
   ) => string;
   file?: (
     content: "",
     children: "",
-    info: BaseBlockInfo<"file"> & { caption: string; url: string },
+    info: BaseBlockInfo<"file"> & {
+      caption: { rich: string; plain: string };
+      url: string;
+    },
   ) => string;
   linkPreview?: (
     content: "",

@@ -38,8 +38,8 @@ const defaults: BlockFormatters = {
   code: (content, children, info) => {
     const code = `<code>${content}</code>`;
     const pre = `<pre data-language="${info.language}">${code}</pre>`;
-    if (!info.caption) return pre;
-    const figcaption = `<figcaption>${info.caption}</figcaption>`;
+    if (!info.caption || !info.caption.rich) return pre;
+    const figcaption = `<figcaption>${info.caption.rich}</figcaption>`;
     return `<figure>${pre}${figcaption}</figure>`;
   },
   callout: (content, children, info) => {
@@ -63,8 +63,8 @@ const defaults: BlockFormatters = {
   },
   image: (content, children, info) => {
     const img = `<img src="${info.url}" alt="">`;
-    if (!info.caption) return img;
-    const figcaption = `<figcaption>${info.caption}</figcaption>`;
+    if (!info.caption || !info.caption.rich) return img;
+    const figcaption = `<figcaption>${info.caption.rich}</figcaption>`;
     return `<figure>${img}${figcaption}</figure>`;
   },
 };

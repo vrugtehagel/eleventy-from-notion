@@ -32,7 +32,7 @@ const defaults: BlockFormatters = {
     return `<blockquote>${content}${children}</blockquote>`;
   },
   toggle: (content, children) => {
-    return `<details><summary>${content}<summary>${children}</details>`;
+    return `<details><summary>${content}</summary>${children}</details>`;
   },
   synced: (content, children) => children,
   code: (content, children, info) => {

@@ -2,9 +2,9 @@
 
 Import Notion pages into your Eleventy site.
 
-## Installation
+## Getting started
 
-To install, run any of the following commands:
+To install the plugin package, use any of the following commands:
 
 ```sh
 # For npm:
@@ -16,8 +16,6 @@ pnpm dlx jsr add @vrugtehagel/eleventy-from-notion
 # For deno:
 deno add @vrugtehagel/eleventy-from-notion
 ```
-
-## Config
 
 To get started with Notion and Eleventy, there's a few things to set up. Let's
 start with the basic boilerplate for your Eleventy config file, and then walk
@@ -63,7 +61,7 @@ environment variable, and set the integration secret using that. By default, if
 you don't pass the `integrationSecret` option directly, it is read from the
 `NOTION_INTEGRATION_SECRET` environment variable.
 
-### The Notion database
+### The Notion database page
 
 Next, we'll need to set up a database of pages to import. The integration does
 not automatically have access to your entire workspace, but instead, you need to

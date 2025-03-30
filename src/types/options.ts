@@ -169,12 +169,16 @@ export type BlockFormatters = {
   toDo?: (
     content: string,
     children: string,
-    info: BaseBlockInfo<"toDo"> & { checked: boolean },
+    info: BaseBlockInfo<"toDo"> & {
+      checked: boolean;
+    },
   ) => string;
   toggle?: (
     content: string,
     children: string,
-    info: BaseBlockInfo<"toggle"> & { color: string },
+    info: BaseBlockInfo<"toggle"> & {
+      color: string;
+    },
   ) => string;
   synced?: (
     content: "",
@@ -184,17 +188,23 @@ export type BlockFormatters = {
   childPage?: (
     content: "",
     children: "",
-    info: BaseBlockInfo<"childPage"> & { title: string },
+    info: BaseBlockInfo<"childPage"> & {
+      title: string;
+    },
   ) => string;
   childDatabase?: (
     content: "",
     children: "",
-    info: BaseBlockInfo<"childDatabase"> & { title: string },
+    info: BaseBlockInfo<"childDatabase"> & {
+      title: string;
+    },
   ) => string;
   equation?: (
     content: "",
     children: "",
-    info: BaseBlockInfo<"equation"> & { expression: string },
+    info: BaseBlockInfo<"equation"> & {
+      expression: string;
+    },
   ) => string;
   code?: (
     content: string,
@@ -207,7 +217,9 @@ export type BlockFormatters = {
   callout?: (
     content: string,
     children: string,
-    info: BaseBlockInfo<"callout"> & { color: string },
+    info: BaseBlockInfo<"callout"> & {
+      color: string;
+    },
   ) => string;
   divider?: (
     content: "",
@@ -246,7 +258,9 @@ export type BlockFormatters = {
   tableRow?: (
     content: "",
     children: "",
-    info: BaseBlockInfo<"tableRow"> & { cells: string[] },
+    info: BaseBlockInfo<"tableRow"> & {
+      cells: string[];
+    },
   ) => string;
   embed?: (
     content: "",
@@ -299,7 +313,9 @@ export type BlockFormatters = {
   linkPreview?: (
     content: "",
     children: "",
-    info: BaseBlockInfo<"linkPreview"> & { url: string },
+    info: BaseBlockInfo<"linkPreview"> & {
+      url: string;
+    },
   ) => string;
 };
 

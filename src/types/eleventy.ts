@@ -40,10 +40,11 @@ export type EleventyOptions = {
   extension?: string;
 
   /** Large imports can take a while due to Notion's rate limits, so it can be
-   * helpful to know how far along an import really is. Setting this option to
-   * `true` lets you know how many pages will be imported, and logs the
-   * progress during the import process. */
-  verbose?: boolean;
+   * helpful to know how far along an import really is. As such, the plugin by
+   * default lets you know how many pages will be imported, and logs the
+   * progress during the import process. To disable these messages, set this
+   * option to `true`. */
+  quiet?: boolean;
 
   /** If a Notion pages was updated, but its output template file was modified
    * since the last successful import, then skip the importing of this page.

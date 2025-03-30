@@ -20,7 +20,7 @@ export async function EleventyFromNotion(
   const { input } = userConfig.directories;
   const outputPath = config.getOutputPath(input, options.output);
   const extension = config.getExtension(options.extension);
-  const { verbose = false } = options;
+  const { quiet = false } = options;
   await fs.mkdir(outputPath, { recursive: true });
   const files = await fs.readdir(outputPath);
   const isClean = files.length == 0 || files.includes(".notion");
@@ -30,7 +30,7 @@ export async function EleventyFromNotion(
   const meta = JSON.parse(json || "{}");
   const builder = new Builder(options);
   const since = meta.lastUpdated ?? 0;
-  if (verbose) console.log("Retrieving a list of updated Notion pages…");
+  if (!quiet) console.log("Retrieving a list of updated Notion pages…");
   const databaseId = config.getDatabaseId(options.database);
   const pages = await builder.listUpdatedPages(databaseId, since, options);
   const found = Object.keys(pages).length;
@@ -38,7 +38,7 @@ export async function EleventyFromNotion(
   const amount = Object.keys(pages).length;
   const skipText = found > amount ? ` (skipping ${found - amount})` : "";
   const amountText = amount == 1 ? "1 page" : `${amount} pages`;
-  if (verbose) console.log(`Importing ${amountText}${skipText}.`);
+  if (!quiet) console.log(`Importing ${amountText}${skipText}.`);
   let updated = 0;
   for (const [pageId, frontMatter] of Object.entries(pages)) {
     const name = pageId.replaceAll("-", "");
@@ -47,11 +47,11 @@ export async function EleventyFromNotion(
     const path = outputPath + name + "." + extension;
     await fs.writeFile(path, file);
     updated++;
-    if (verbose) console.log(`Imported ${updated} / ${amount} (${name})`);
+    if (!quiet) console.log(`Imported ${updated} / ${amount} (${name})`);
   }
   meta.lastUpdated = Date.now();
   await fs.writeFile(metaPath, JSON.stringify(meta));
-  if (verbose) console.log("Notion pages imported successfully!");
+  if (!quiet) console.log("Notion pages imported successfully!");
 }
 
 /** Takes the object of updated pages, and removes the ones that should be

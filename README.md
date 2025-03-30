@@ -14,7 +14,7 @@ yarn dlx jsr add @vrugtehagel/eleventy-from-notion
 # For pnpm:
 pnpm dlx jsr add @vrugtehagel/eleventy-from-notion
 # For deno:
-deno add @vrugtehagel/eleventy-from-notion
+deno add jsr:@vrugtehagel/eleventy-from-notion
 ```
 
 To get started with Notion and Eleventy, there's a few things to set up. Let's

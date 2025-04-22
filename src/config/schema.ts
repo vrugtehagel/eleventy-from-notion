@@ -19,6 +19,7 @@ function normalize(
   const { name, rename } = schemaEntry;
   const isString = typeof name == "string";
   if (!isString) throw Error("Schema 'name' properties must be strings");
+  if (rename == null) return { name, rename: [name] };
   if (typeof rename == "string") return { name, rename: [rename] };
   const isArray = Array.isArray(rename);
   if (!isArray) throw Error("The 'rename' property must be a string or array");

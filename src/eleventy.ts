@@ -22,9 +22,6 @@ export async function EleventyFromNotion(
   const extension = config.getExtension(options.extension);
   const { quiet = false } = options;
   await fs.mkdir(outputPath, { recursive: true });
-  const files = await fs.readdir(outputPath);
-  const isClean = files.length == 0 || files.includes(".notion");
-  if (!isClean) throw Error(`Output folder '${outputPath}' already exists`);
   const metaPath = outputPath + ".notion";
   const json = await fs.readFile(metaPath, "utf8").catch(() => null);
   const meta = JSON.parse(json || "{}");

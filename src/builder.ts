@@ -36,11 +36,16 @@ export class Builder {
     since: number,
     options?: BuildOptions,
   ): Promise<Record<string, FrontMatter>> {
-    const list = this.#client.databases.query;
+    const retrieve = this.#client.databases.retrieve;
+    const list = this.#client.dataSources.query;
+    const database = await retrieve({ database_id: databaseId });
+    const isDatabase = Notion.isFullDatabase(database);
+    if (!isDatabase) throw Error("Cannot retrieve updated pages");
+    const [dataSource] = database.data_sources;
     const timestamp = "last_edited_time";
     const after = new Date(since).toISOString();
     const filter = { timestamp, [timestamp]: { after } } as const;
-    const apiOptions = { database_id: databaseId, filter };
+    const apiOptions = { data_source_id: dataSource.id, filter };
     const schema = config.getSchema(options?.schema);
     const formatters = config.getInlineFormatters(options?.formatters?.inline);
     const results = await Notion.collectPaginatedAPI(list, apiOptions);

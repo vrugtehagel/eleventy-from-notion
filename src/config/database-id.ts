@@ -15,8 +15,9 @@ export function getDatabaseId(database: EleventyOptions["database"]): string {
   if (COMPACT_UUID.test(database)) return database;
   try {
     return getDatabaseIdFromUrl(new URL(database));
-  } catch {}
-  throw Error("Unrecognized format for 'database' option");
+  } catch {
+    throw Error("Unrecognized format for 'database' option");
+  }
 }
 
 /** Retrieve the UUID from the URL of a page. The page URL contains the compact

@@ -76,9 +76,12 @@ function formatUser(
 /** Turn multiple (partial) Notion users into an array of simplified user
  * objects. */
 function formatUsers(
-  users: Array<Parameters<typeof Notion.isFullUser>[0]>,
+  users: Array<
+    Parameters<typeof Notion.isFullUser>[0] | Notion.GroupObjectResponse
+  >,
 ): Array<{ name: string; email?: string }> {
-  const formatted = users.map((user) => formatUser(user));
+  const eligible = users.filter((user) => user.object != "group");
+  const formatted = eligible.map((user) => formatUser(user));
   return formatted.filter((user) => user != null);
 }
 

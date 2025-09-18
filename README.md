@@ -116,11 +116,13 @@ path with the `output` option, which defaults to `notion/`. This is the path,
 relative to your Eleventy input directory, that is used to write the imported
 templates into. The file names match the page ID from Notion, i.e. they are
 dashless UUIDs, and the extension is `.html` by default (though this can be
-configured to be something else, like `.njk`). An additional `.notion` file is
-created in this directory, which contains a bit of JSON that the plugin uses to
-keep track of its state between subsequent runs. If the directory used for
-imports is not empty, and it doesn't contain the `.notion` file, the import is
-immediately aborted to avoid overwriting files unintentionally.
+configured to be something else, like `.njk`). It is also possible to change the
+import format to Markdown using the `formatters.language` option. An additional
+`.notion` file is created in this directory, which contains a bit of JSON that
+the plugin uses to keep track of its state between subsequent runs. If the
+directory used for imports is not empty, and it doesn't contain the `.notion`
+file, the import is immediately aborted to avoid overwriting files
+unintentionally.
 
 Notion pages are only imported if they have been updated since the last
 successful import. In particular, this means that changes to the database

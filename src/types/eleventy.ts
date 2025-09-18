@@ -1,4 +1,6 @@
 import type { BuilderOptions, BuildOptions } from "./options.ts";
+import type { FrontMatter } from "./output.ts";
+import type { NotionPage } from "./notion.ts";
 
 /** As part of the Eleventy build process, Notion is queried for updated Notion
  * pages, and they are processed and written into a special folder. The
@@ -53,6 +55,20 @@ export type EleventyOptions = {
    * halfway through, since the plugin's "last updated" timestamp is only
    * updated after a _successful_ import. Defaults to `false`. */
   skipModified?: boolean;
+
+  /** In some cases, it can be useful to avoid importing certain pages
+   * altogether, especially when holding the imported pages in version control.
+   * For example, one might filter out pages that have status "editing" to
+   * avoid accidentally publishing changes that were not yet ready. To filter
+   * out pages, specify this custom callback function and return `true` for
+   * pages that shouldn't be imported. The callback is run once for each page,
+   * and receives its front matter (as specified in the `schema`) as first
+   * argument, and the original Notion page (as received from the Notion API)
+   * as second argument. By default, no pages are skipped.
+   *
+   * This option is entirely separate from `skipModified`; they can both be
+   * specified. */
+  skip?: (frontMatter: FrontMatter, page: NotionPage) => boolean;
 };
 
 /** To use the plugin, you must pass an options object configuring a few

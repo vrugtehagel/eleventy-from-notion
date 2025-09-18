@@ -35,7 +35,7 @@ export class Builder {
     databaseId: string,
     since: number,
     options?: BuildOptions,
-  ): Promise<Record<string, FrontMatter>> {
+  ): Promise<Map<NotionPage, FrontMatter>> {
     const retrieve = this.#client.databases.retrieve;
     const list = this.#client.dataSources.query;
     const database = await retrieve({ database_id: databaseId });
@@ -51,7 +51,7 @@ export class Builder {
     const results = await Notion.collectPaginatedAPI(list, apiOptions);
     const pages = results.filter((result) => Notion.isFullPage(result));
     const get = (page: NotionPage) => getFrontMatter(page, formatters, schema);
-    return Object.fromEntries(pages.map((page) => [page.id, get(page)]));
+    return new Map(pages.map((page) => [page, get(page)]));
   }
 
   /** Retrieve the content of a Notion page, given a set of inline and block

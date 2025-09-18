@@ -13,5 +13,5 @@ export function getExtension(
 function verifyString(value: unknown, name: string): boolean {
   if (value == null) return false;
   if (typeof value == "string") return true;
-  throw Error(`The "${name}" option must be a string`);
+  throw Error(`The '${name}' option must be a string`);
 }

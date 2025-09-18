@@ -26,6 +26,7 @@ function getPropertyValue(
   name: string,
   formatters: Required<InlineFormatters>,
 ): FrontMatter[string] {
+  if (name.startsWith("@")) return getMetadataValue(page, name.slice(1));
   const exists = name in page.properties;
   if (!exists) throw Error(`Page property '${name}' not found`);
   const property = page.properties[name];
@@ -47,6 +48,27 @@ function getPropertyValue(
   if (type == "last_edited_by") return formatUser(property[type]);
   if (type == "people") return formatUsers(property[type]);
   throw Error(`Page property type '${type}' is unsupported`);
+}
+
+/** Get a value from a page's metadata instead of its properties. For example,
+ * whether the page is locked, its icon, or its public url. */
+function getMetadataValue(
+  page: NotionPage,
+  name: string,
+): FrontMatter[string] {
+  const exists = name in page;
+  if (!exists) throw Error(`Page metadata property '@${name}' not found`);
+  if (name == "is_locked") return page[name];
+  if (name == "id") return page[name];
+  if (name == "created_time") return page[name];
+  if (name == "last_edited_time") return page[name];
+  if (name == "archived") return page[name];
+  if (name == "in_trash") return page[name];
+  if (name == "url") return page[name];
+  if (name == "public_url") return page[name];
+  if (name == "icon") return formatIcon(page[name]);
+  if (name == "cover") return formatCover(page[name]);
+  throw Error(`Page metadata '${name}' is unsupported`);
 }
 
 /** Slightly adjust Notion's date formatting. */
@@ -83,6 +105,24 @@ function formatUsers(
   const eligible = users.filter((user) => user.object != "group");
   const formatted = eligible.map((user) => formatUser(user));
   return formatted.filter((user) => user != null);
+}
+
+/** Get the URL for a cover image. */
+function formatCover(cover: NotionPage["cover"]): string | null {
+  if (cover == null) return null;
+  if (cover.type == "file") return cover.file.url;
+  if (cover.type == "external") return cover.external.url;
+  throw Error("Unsupported page cover image type");
+}
+
+/** Format a specified page icon. */
+function formatIcon(icon: NotionPage["icon"]): string | null {
+  if (icon == null) return null;
+  if (icon.type == "emoji") return icon.emoji;
+  if (icon.type == "external") return icon.external.url;
+  if (icon.type == "file") return icon.file.url;
+  if (icon.type == "custom_emoji") return icon.custom_emoji.url;
+  throw Error("Unsupported page icon type");
 }
 
 /** Sets a value on a nested object, creating intermediate objects where

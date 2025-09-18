@@ -47,7 +47,13 @@ export type BuildOptions = {
    * For example, if we specify `name: "SEO description"` together with
    * `rename: ["seo", "description"]`, then the value of the `"SEO description"
    * field in Notion can be accessed using the metadata by accessing the nested
-   * `seo.description` property. */
+   * `seo.description` property.
+   *
+   * You can also use this to import a Notion's page metadata, such as the
+   * cover image or whether or not it is locked. To query these properties, the
+   * `name` must be prefixed with an `@` character, for example `"@cover"` or
+   * `"@is_locked"`. The renamed property defaults to the same name but without
+   * the leading `@` (i.e. `"cover"` and `"is_locked"`).  */
   schema: Array<{ name: string; rename?: string | string[] }>;
 
   /** The formatters to use for both inline text (Notion calls this "rich

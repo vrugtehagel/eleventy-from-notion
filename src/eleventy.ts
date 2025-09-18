@@ -21,7 +21,8 @@ export async function EleventyFromNotion(
 ): Promise<void> {
   const { input } = userConfig.directories;
   const outputPath = config.getOutputPath(input, options.output);
-  const language = options.formatters?.language;
+  const { formatters } = options;
+  const language = formatters?.language;
   const extension = config.getExtension(options.extension, language);
   const { quiet = false } = options;
   await fs.mkdir(outputPath, { recursive: true });
@@ -41,10 +42,11 @@ export async function EleventyFromNotion(
   const amountText = amount == 1 ? "1 page" : `${amount} pages`;
   if (!quiet) console.log(`Importing ${amountText}${skipText}.`);
   let updated = 0;
+  const format = config.getFrontMatterFormatter(formatters?.frontMatter);
   for (const [page, frontMatter] of pageMap) {
     const name = page.id.replaceAll("-", "");
     const content = await builder.getPageContent(page.id, options);
-    const file = `---json\n${JSON.stringify(frontMatter)}\n---\n${content}`;
+    const file = `${format(frontMatter)}${content}`;
     const path = outputPath + name + "." + extension;
     await fs.writeFile(path, file);
     updated++;

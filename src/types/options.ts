@@ -1,3 +1,5 @@
+import type { FrontMatter } from "./output.ts";
+
 /** Options passed to the page builder class. Configures the underlying Notion
  * client. Structural options and formatting options are passed to individual
  * methods. */
@@ -79,11 +81,26 @@ export type BuildOptions = {
    * When the builder encounters a block of a type that is not specified and
    * does not have a fallback, a warning is logged and the block (including all
    * of its children) are ignored. To prevent this, you must specify your own
-   * block formatter of the type in question. */
+   * block formatter of the type in question.
+   *
+   * Lastly, you may specify a custom function to format your front matter. By
+   * default, YAML is used. The front matter delimiters must be part of the
+   * returned string; for example, to format as JSON, one might do:
+   *
+   * ```js
+   * // …
+   *   formatters: {
+   *     frontMatter: data => {
+   *       return `---json\n${JSON.stringify(data)}\n---\n`;
+   *     },
+   *   }
+   * // …
+   * ``` */
   formatters?: {
     language?: "html" | "md";
     inline?: InlineFormatters;
     block?: BlockFormatters;
+    frontMatter?: (frontMatter: FrontMatter) => string;
   };
 };
 

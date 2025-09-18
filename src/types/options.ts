@@ -54,9 +54,12 @@ export type BuildOptions = {
    * text") and blocks.
    *
    * For inline formatting, sensible fallbacks are set in an attempt to
-   * generate somewhat semantic HTML by default. However, each type can be
+   * generate somewhat semantic markup by default. However, each type can be
    * overwritten to allow for completely custom rich text stringification.
-   * Technically, it doesn't even need to stringify to HTML.
+   * The `language` option is available to choose a default set of formatters;
+   * either `"html"` or `"md"`. By default, `"html"` is used. Note that, if the
+   * `extension` option is not specified, it defaults to the value of the
+   * `language` option.
    *
    * > [!NOTE]
    * > Due to limitations in the Notion API, it is impossible to support both
@@ -72,6 +75,7 @@ export type BuildOptions = {
    * of its children) are ignored. To prevent this, you must specify your own
    * block formatter of the type in question. */
   formatters?: {
+    language?: "html" | "md";
     inline?: InlineFormatters;
     block?: BlockFormatters;
   };

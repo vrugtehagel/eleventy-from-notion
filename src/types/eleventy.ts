@@ -31,12 +31,13 @@ export type EleventyOptions = {
   output?: string;
 
   /** The extension to use for the templates. The filename matches the Notion
-   * page ID. By default, the extension is `html`, which is processed by
-   * Eleventy as Liquid. This can be avoided by setting Eleventy's
-   * `htmlTemplateEngine` to `false`. That can be done either in your Eleventy
-   * configuration file, to disable it altogether, or you may put a data file
-   * in the output directory, as long as its filename does not start with a
-   * valid UUID nor a valid UUID without dashes. */
+   * page ID. The extension defaults to `formatters.language`, which defaults
+   * to `html` if specified. Note that HTML is processed by Eleventy as Liquid;
+   * this can be avoided by setting Eleventy's `htmlTemplateEngine` to `false`.
+   * That can be done either in your Eleventy configuration file, to disable it
+   * altogether, or you may put a data file in the output directory to achieve
+   * the same, as long the data file's filename does not start with a valid
+   * UUID nor a valid UUID without dashes. */
   extension?: string;
 
   /** Large imports can take a while due to Notion's rate limits, so it can be

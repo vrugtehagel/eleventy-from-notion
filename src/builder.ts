@@ -47,7 +47,7 @@ export class Builder {
     const filter = { timestamp, [timestamp]: { after } } as const;
     const apiOptions = { data_source_id: dataSource.id, filter };
     const schema = config.getSchema(options?.schema);
-    const formatters = config.getInlineFormatters(options?.formatters?.inline);
+    const formatters = config.getInlineFormatters(options?.formatters);
     const results = await Notion.collectPaginatedAPI(list, apiOptions);
     const pages = results.filter((result) => Notion.isFullPage(result));
     const get = (page: NotionPage) => getFrontMatter(page, formatters, schema);
@@ -61,8 +61,8 @@ export class Builder {
     pageId: string,
     options: Omit<BuildOptions, "schema"> = {},
   ): Promise<string> {
-    const inline = config.getInlineFormatters(options.formatters?.inline);
-    const block = config.getBlockFormatters(options.formatters?.block);
+    const inline = config.getInlineFormatters(options.formatters);
+    const block = config.getBlockFormatters(options.formatters);
     const formatters = { inline, block };
     const blocks = await this.#getChildBlocks(pageId);
     return formatBlocks(blocks, formatters);

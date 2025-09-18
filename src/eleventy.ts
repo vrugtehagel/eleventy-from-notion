@@ -19,7 +19,8 @@ export async function EleventyFromNotion(
 ): Promise<void> {
   const { input } = userConfig.directories;
   const outputPath = config.getOutputPath(input, options.output);
-  const extension = config.getExtension(options.extension);
+  const language = options.formatters?.language;
+  const extension = config.getExtension(options.extension, language);
   const { quiet = false } = options;
   await fs.mkdir(outputPath, { recursive: true });
   const metaPath = outputPath + ".notion";

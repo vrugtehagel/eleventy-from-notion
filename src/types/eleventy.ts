@@ -69,6 +69,14 @@ export type EleventyOptions = {
    * This option is entirely separate from `skipModified`; they can both be
    * specified. */
   skip?: (frontMatter: FrontMatter, page: NotionPage) => boolean;
+
+  /** If you are keeping your files in version control software, you may need
+   * a mechanism to delete files dynamically based on a page's status in
+   * Notion. This works similarly to skipping pages; a custom function can be
+   * provided to decide on a case-by-case basis whether or not a page should be
+   * deleted. Note that, if a page is skipped, it is not eligible for deletion.
+   * By default, no pages are deleted. */
+  delete?: (frontMatter: FrontMatter, page: NotionPage) => boolean;
 };
 
 /** To use the plugin, you must pass an options object configuring a few

@@ -34,27 +34,28 @@ export async function EleventyFromNotion(
   if (!quiet) console.log("Retrieving a list of updated Notion pages…");
   const databaseId = config.getDatabaseId(options.database);
   const pageMap = await builder.listUpdatedPages(databaseId, since, options);
-  const found = pageMap.size;
   if (options.skipModified) await removeModified(pageMap, since, outputPath);
-  if (options.skip) await removeSkipped(pageMap, options.skip);
+  const skipped = removeSkipped(pageMap, options.skip);
   const amount = pageMap.size;
-  const skipText = found > amount ? ` (skipping ${found - amount})` : "";
+  const skipText = skipped > 0 ? ` (skipping ${skipped})` : "";
   const amountText = amount == 1 ? "1 page" : `${amount} pages`;
   if (!quiet) console.log(`Importing ${amountText}${skipText}.`);
   let updated = 0;
-  const format = config.getFrontMatterFormatter(formatters?.frontMatter);
   for (const [page, frontMatter] of pageMap) {
     const name = page.id.replaceAll("-", "");
-    const content = await builder.getPageContent(page.id, options);
-    const file = `${format(frontMatter)}${content}`;
     const path = outputPath + name + "." + extension;
-    await fs.writeFile(path, file);
+    const status = await write(path, page, frontMatter, builder, options);
     updated++;
-    if (!quiet) console.log(`Imported ${updated} / ${amount} (${name})`);
+    if (quiet) continue;
+    const progress = `${updated} / ${amount}`;
+    const action = `${status} ${name}`;
+    console.log(`Imported ${progress} (${action})`);
   }
   meta.lastUpdated = Date.now();
   await fs.writeFile(metaPath, JSON.stringify(meta));
-  if (!quiet) console.log("Notion pages imported successfully!");
+  if (quiet) return;
+  if (updated > 0) console.log("Notion pages imported successfully!");
+  else console.log("Notion import complete; no pages imported!");
 }
 
 /** Takes the object of updated pages, and removes the ones that should be
@@ -82,9 +83,33 @@ async function removeModified(
 /** Remove pages based on a custom `skip` function. */
 function removeSkipped(
   pageMap: Map<NotionPage, FrontMatter>,
-  skip: (frontMatter: FrontMatter, page: NotionPage) => boolean,
-): void {
+  skip?: (frontMatter: FrontMatter, page: NotionPage) => boolean,
+): number {
+  if (!skip) return 0;
+  let skipped = 0;
   for (const [page, frontMatter] of [...pageMap]) {
-    if (skip(frontMatter, page)) pageMap.delete(page);
+    if (!skip(frontMatter, page)) continue;
+    pageMap.delete(page);
+    skipped++;
   }
+  return skipped;
+}
+
+/** Prepares a document and writes it to (or deletes it from) the local file
+ * system. It asynchronously returns the status of the document. */
+async function write(
+  path: string,
+  page: NotionPage,
+  frontMatter: FrontMatter,
+  builder: Builder,
+  options: EleventyFromNotionOptions,
+): Promise<"updated" | "deleted"> {
+  const shouldDelete = options.delete?.(frontMatter, page) ?? false;
+  if (shouldDelete) return await fs.unlink(path).then(() => "deleted");
+  const body = await builder.getPageContent(page.id, options);
+  const { formatters } = options;
+  const format = config.getFrontMatterFormatter(formatters?.frontMatter);
+  const file = `${format(frontMatter)}${body}`;
+  await fs.writeFile(path, file);
+  return "updated";
 }

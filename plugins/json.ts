@@ -4,6 +4,6 @@ import type { Config } from "../src/config.ts";
  * YAML parsers and significantly faster to stringify. */
 export function Json(config: Config): void {
   config.setDataFormatter((data) => {
-    return `---\n${JSON.stringify(data, null, 2)}\n---\n`;
+    return `---json\n${JSON.stringify(data, null, 2)}\n---\n`;
   });
 }

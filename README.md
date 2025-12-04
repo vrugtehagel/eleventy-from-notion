@@ -6,7 +6,7 @@ Import Notion pages into your Eleventy site.
 
 To install the plugin package, use any of the following commands:
 
-```sh
+```bash
 # For npm:
 npx jsr add @vrugtehagel/eleventy-from-notion
 # For yarn:
@@ -17,11 +17,12 @@ pnpm dlx jsr add @vrugtehagel/eleventy-from-notion
 deno add jsr:@vrugtehagel/eleventy-from-notion
 ```
 
-To get started with Notion and Eleventy, there's a few things to set up. Let's
-start with the basic boilerplate for your Eleventy config file, and then walk
-through the more important options to provide to the plugin. After having added
-the plugin to your project, import it into your Eleventy configuration file
-(usually `.eleventy.js`) and add it using `.addPlugin()`:
+To get started with Notion and Eleventy, there's a few things to set up. To
+avoid polluting your Eleventy config with a bunch of Notion-related
+configuration, your Notion configuration is expected to be written in a
+different file; by default, a `notion.config.js` file alongside your
+`eleventy.config.js` (or `.eleventy.js`) file. The only thing you need in your
+Eleventy config is
 
 ```js
 import EleventyFromNotion from "@vrugtehagel/eleventy-from-notion";
@@ -29,25 +30,47 @@ import EleventyFromNotion from "@vrugtehagel/eleventy-from-notion";
 export default function (eleventyConfig) {
   // …
   eleventyConfig.addPlugin(EleventyFromNotion, {
-    integrationSecret: process.env.NOTION_SECRET,
-    database: "https://www.notion.so/0123456789abcdef0123456789abcdef",
-    output: "notion/",
-    schema: [
-      // …
-    ],
+    config: "notion.config.js",
   });
   // …
 }
 ```
 
-There's a few things going on here. First things first; our API key.
+If you'd like to use the default path, the options object can be omitted
+entirely. The plugin does not take any other options in this form; all remaining
+configuration is done in your Notion config file. The syntax used in the Notion
+config file closely resembles that of your Eleventy config; here's an example.
 
-### Integration secret
+```js
+import * as process from "node:process";
+import { Markdown, Yaml } from "@vrugtehagel/eleventy-from-notion";
 
-First, you'll need to create an internal Notion integration (which is what
-Notion calls their API keys). That sounds difficult, but don't worry; it's
-really just a few clicks. The process is described in detail in Notion's
-[Create a notion integration][1] documentation, but here's the gist of it:
+export default function (notionConfig) {
+  notionConfig.use(Markdown);
+  notionConfig.use(Yaml);
+
+  notionConfig.setIntegrationSecret(process.env.NOTION_SECRET);
+  notionConfig.setDataSourceId("0123456789abcdef0123456789abcdef");
+  notionConfig.setOutputDirectory("./src/posts/");
+
+  notionConfig.importProperty("URL", "permalink");
+  notionConfig.importProperty("Name", "title");
+  notionConfig.importProperty("Status", "status");
+  notionConfig.importMeta("cover", "hero");
+
+  notionConfig.skip((page) => page.frontMatter.status == "editing");
+  notionConfig.delete((page) => page.frontMatter.status == "deleted");
+}
+```
+
+## Integration secret
+
+First things first; the importer needs an API key to be able to fetch your
+Notion content. You'll need to create an internal Notion integration (which is
+what Notion calls their API keys). That might sound difficult, but don't worry;
+it's really just a few clicks. The process is described in detail in Notion's
+[Create a Notion integration](https://developers.notion.com/docs/create-a-notion-integration)
+documentation, but here's the gist of it:
 
 1. Head to <https://www.notion.com/my-integrations>.
 2. Add a new integration.
@@ -56,101 +79,151 @@ really just a few clicks. The process is described in detail in Notion's
 
 At this point, you should be able to reveal and copy your "Internal Integration
 Secret". Since this functions as an API key, which is a password of sorts, you
-should _not_ commit this to your version control software. Instead, configure an
+should not commit this to your version control software. Instead, configure an
 environment variable, and set the integration secret using that. By default, if
-you don't pass the `integrationSecret` option directly, it is read from the
-`NOTION_INTEGRATION_SECRET` environment variable.
+you don't tell the plugin about the integration secret directly, it is read from
+the `NOTION_INTEGRATION_SECRET` environment variable.
 
-### The Notion database page
+## The Notion data source
 
-Next, we'll need to set up a database of pages to import. The integration does
-not automatically have access to your entire workspace, but instead, you need to
-"connect" the integration to a page, which then gives the integration access to
-said page and all pages under it. The plugin expects this "root" page to be a
-database, and each entry in the database should be a regular page (which will be
-imported). To add the integration to the database page, click the "•••" in the
-corner of the page and select "Connections", then find the integration you
-configured and select it. Then, in your Eleventy configuration, provide this
-database to the plugin, either as a full URL, or as ID (the latter being a UUID
-with or without dashes; this is contained within the URL).
+Next, we'll need to set up a data source containing pages to import. The
+integration does not automatically have access to your entire workspace, but
+instead, you need to "connect" the integration to a page, which then gives the
+integration access to said page and all pages under it. There are a few ways to
+specify this data source, but no matter how you specify it, each entry in the
+database should be a regular page (which will be imported). To add the
+integration to the database page, click the "•••" in the corner of the page and
+select "Connections", then find the integration you configured and select it.
+Then, in your Notion configuration, provide the data source to the plugin in one
+of the following ways:
 
-### Page property schema
+- By data source ID. This is the preferred method, as it avoids some additional
+  work for the plugin. To retrieve the data source ID for a table, click the
+  "settings" icon (to the right of the "New" button), hit "Manage data sources",
+  locate the table in question, then click the "•••" to reveal the "Copy data
+  source ID" button. Then add it in your Notion config using
+  `notionConfig.setDataSourceId(…)`.
+- By a URL point at a database. Since a database can contain multiple data
+  sources, the plugin will automatically select the first data source. Set this
+  in your Notion config using `notionConfig.setDatabaseIdFromUrl(…)`. The
+  database ID is then extracted from the URL.
+- As an alternative to specifying a URL, you may extract the database ID from
+  the URL manually (typically the dashless UUID right after `notion.so/`, before
+  any query parameters), then add it using `notionConfig.setDatabaseId(…)`.
 
-Next, and this is the last thing we need to configure, is our "schema". The
-pages you import are part of the specified database, and (can) have additional
-properties beyond just their content. These are called "page properties" in
-Notion, and the concept is very similar to "front matter" in Eleventy. However,
-the structure and naming is naturally a bit different, and you might not want to
-import every single page property anyway. So, you'll need to tell the
-`EleventyFromNotion` plugin exactly which properties to import, and what to
-rename them to. For example, we probably want a page property to configure
-permalinks. Let's say we called this field "Page URL" in Notion. We want it to
-be imported as "permalink", so that Eleventy knows what URL to write the
-template to. To configure this in the schema, we add an array entry like so:
+## Properties
+
+Next, we can optionally configure the page properties to import. Your data
+source in Notion likely has columns; when navigating to a page, they are
+presented as what in Eleventy would be front matter. You may import any number
+of these using
 
 ```js
-eleventyConfig.addPlugin(EleventyFromNotion, {
+notionConfig.importProperty(notionName, eleventyName);
+```
+
+Here `notionName` must match the column name in Notion exactly. The property is
+then imported and its value found under the front matter key specified in
+`eleventyName`. You may specify `eleventyName` as a string or array of strings;
+in the latter case, the property is nested with each array entry a nesting
+level.
+
+You may also import Notion page metadata. This is completely independent from
+your data source columns; all Notion pages have this metadata. For example, a
+page's icon (`"icon"`), cover image (`"cover"`), or whether it is locked
+(`"is_locked"`). These may be specified the same way as properties, using
+
+```js
+notionConfig.importMeta(notionName, eleventyName);
+```
+
+### Data types
+
+Both properties and metadata properties have a variety of different types. Page
+properties may be rich text, URLs, multiselects, numbers, files, and so on.
+Metadata properties have types, too, e.g. icons are strings, cover images are
+files, and `is_locked` is a boolean. This plugin covers most of the basic types,
+but not every property type is supported out-of-the-box. When trying to add such
+a property, the plugin will tell you its type is unsupported and a data parser
+is required. You may then specify how you'd like to interpret this property type
+using
+
+```js
+notionConfig.setDataParser("type", (data) => {
   // …
-  schema: [
-    { name: "Page URL", rename: "permalink" },
-  ],
 });
 ```
 
-We can also configure nested front matter keys; for example, say we have a page
-property in Notion called "SEO Description", then we can map this to the nested
-`seo.description` property by specifying `name: "SEO Description"` together with
-`rename: ["seo", "description"]`. And, this brings me to the next point; "text"
-page properties in Notion are always rich text. In Eleventy, you might not
-always want rich text; for example, an SEO description will probably go into a
-`<meta>` tag, in which we want to use plain text. As such, text fields are
-mapped to `{ rich, plain }` objects; for the SEO description example, that means
-we can refer to it in our layout as `{{ seo.description.plain }}`. The other
-page property types map more directly to primitives, such as checkboxes mapping
-to booleans, or "select" fields mapping to a string.
+## Imported templates
 
-### Imported templates
+Since Notion pages aren't inherently exposed as being a certain format, the
+plugin requires formatters in order to turn the objects returned by the Notion
+API into strings. Most of the time, you'll want to either import pages as
+Markdown or HTML; as such, this plugin provides built-in subplugins to achieve
+this. Similarly, it exposes plugins to stringify the front matter in a certain
+format, namely YAML or JSON. Here's an example on how to use them:
 
-Lastly, a word about how the import process works. You may specify an output
-path with the `output` option, which defaults to `notion/`. This is the path,
-relative to your Eleventy input directory, that is used to write the imported
-templates into. The file names match the page ID from Notion, i.e. they are
-dashless UUIDs, and the extension is `.html` by default (though this can be
-configured to be something else, like `.njk`). It is also possible to change the
-import format to Markdown using the `formatters.language` option. An additional
-`.notion` file is created in this directory, which contains a bit of JSON that
-the plugin uses to keep track of its state between subsequent runs. If the
-directory used for imports is not empty, and it doesn't contain the `.notion`
-file, the import is immediately aborted to avoid overwriting files
-unintentionally.
+```js
+import { Markdown, Yaml } from "@vrugtehagel/eleventy-from-notion";
 
-Notion pages are only imported if they have been updated since the last
-successful import. In particular, this means that changes to the database
-itself, such as the adding or removing of a column, does _not_ reimport all the
-pages. This is intentional; however, if you need to re-import all of your posts,
-either delete the _contents_ of the `.notion` file (do not delete the file
-itself!) or delete the output directory entirely.
+export default function (notionConfig) {
+  // …
+  notionConfig.use(Markdown);
+  notionConfig.use(Yaml);
+  // …
+}
+```
 
-### Permalinks
+Similar to the wide variety of data types Notion support, it supports many
+different block types. A majority of them translate well into HTML or Markdown,
+and the `Markdown` and `Html` plugins take care of this translation for you. In
+some cases, like a multi-column layout, this translation isn't obvious, and thus
+no sensible default can be provided. You can add (or overwrite) support for
+block types using
+
+```js
+config.setBlockFormatter("type", (block) => {
+  // …
+});
+```
+
+For examples, you may refer to the `Markdown` and `Html` plugins' source code
+shipped with this package.
+
+If all data types, block types, and inline types (for rich text) are supported,
+the Notion pages can be imported. Each page is imported as a file under the
+directory specified with `notionConfig.setOutputDirectory(…)`. The extension
+matches the content's format, and the file names match the page IDs from Notion.
+Assets are also imported into the same directory; they are named
+`asset-[filename]-[hash].[ext]` where the hash is base64 cut to 8 characters.
+Lastly, a `.notion` file is created in the output directory, which is used to
+cache data across runs (most importantly the timestamp for the most recent
+successful import). Beyond this, you are free to add files and directories in
+the output directory, as long as they don't clash with files imported. In
+particular, adding a directory data file is allowed.
+
+If you'd like to force a reimport, delete the `.notion` file or its contents.
+
+## Permalink
 
 For permalinks, there are two main recommended ways of setting things up. The
 first option is for when you want to be able to decide the permalink from within
-the comfort of Notion. To do this, configure a page property (i.e. database
+the comfort of Notion. To do this, configure a page property (i.e. data source
 column) with a type of "URL". This type is important; if you decide to use
 "text", then the page property contains rich text, which generates a
 `{ rich, plain }` pair in the page's front matter. Eleventy then cannot process
-your templates anymore because it expects a string for the `permalink`. This
-problem is avoided by using the "URL" type. Note that you must then also
-configure your schema to map this page property to front matter; for example, if
-the page property is named "Link" then add
-`{ name: "Link", rename: "permalink" }` to your `schema` array.
+your templates anymore because it expects a string for the permalink. This
+problem is avoided by using the "URL" type. Note that you must then also import
+this page property; for example, if the page property is named "Link" then
+import it using `notionConfig.importProperty("Link", "permalink")` in your
+Notion config.
 
 The second way of setting up permalinks is through a computed property in
-Eleventy. You are free to add files to the specified output directory (which
-defaults to `notion/`), as long as their names don't start with a valid Notion
-ID (a UUID with or without dashes). For example, let's say you configured your
-output directory to be `output: "external/notion/"`. Then, you can add a file
-`external/notion/notion.11tydata.js` containing, for example:
+Eleventy. You are free to add files to the specified output directory, as long
+as their names don't start with a valid Notion ID (a UUID with or without
+dashes) or `asset-`. For example, let's say you configured your output directory
+to be `external/notion/`. Then, you can add a file
+`external/notion/notion.11tydata.js` containing:
 
 ```js
 export default {
@@ -162,5 +235,3 @@ export default {
 ```
 
 This way, each post generates its own permalink dynamically.
-
-[1]: https://developers.notion.com/docs/create-a-notion-integration

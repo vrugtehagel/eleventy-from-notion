@@ -1,15 +1,13 @@
-export { Builder as NotionPageBuilder } from "./src/builder.ts";
+export type * from "./src/types.ts";
+export type { Block } from "./src/block.ts";
+export type { Page } from "./src/page.ts";
+export type { Config as NotionConfig } from "./src/config.ts";
+
+export { fromNotion } from "./src/index.ts";
 export { EleventyFromNotion as default } from "./src/eleventy.ts";
 
-export type {
-  EleventyFromNotionOptions,
-  EleventyOptions,
-} from "./src/types/eleventy.ts";
-export type {
-  BlockFormatters,
-  BlockInfo,
-  BuilderOptions,
-  BuildOptions,
-  InlineFormatters,
-} from "./src/types/options.ts";
-export type { FrontMatter } from "./src/types/output.ts";
+export { SkipModified } from "./plugins/skip-modified.ts";
+export { Json } from "./plugins/json.ts";
+export { Markdown } from "./plugins/markdown.ts";
+export { Yaml } from "./plugins/yaml.ts";
+export { Html } from "./plugins/html.ts";

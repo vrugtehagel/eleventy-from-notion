@@ -176,4 +176,10 @@ const messages: Record<string, (...args: string[]) => string> = {
   "unsupported-inline-type-$1": (type: string) => `
     Currently, parsing and formatting ${type}s is not yet supported.
   `,
+  "unrecognized-callout-type": () => `
+    Unrecognized callout type encountered. By default, callouts are mapped to
+    different types by setting their background color. Specifically: blue maps
+    to INFO, green to TIP, purple to IMPORTANT, yellow to WARNING, and red maps
+    to CAUTION.
+  `,
 };

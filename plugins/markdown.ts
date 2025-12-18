@@ -1,6 +1,7 @@
 import type { RichText } from "../src/types.ts";
 import type { Config } from "../src/config.ts";
 import type { Block } from "../src/block.ts";
+import { error } from "../src/error.ts";
 
 /** Stringify page content as Markdown. Not all styles and blocks are
  * supported by this plugin; only ones that have a clear translation into
@@ -79,7 +80,7 @@ export function Markdown(config: Config): void {
     color: string;
   }>("callout", (block) => {
     const type = calloutTypes[block.info.color] ?? null;
-    if (!type) throw Error("Unrecognized callout type");
+    if (!type) throw error`unrecognized-callout-type`;
     let result = `\n[!${type}]\n${block.content}`;
     if (block.body) result += `\n${block.body.replace(/\n$/, "")}`;
     result = result.replaceAll("\n", "\n> ");

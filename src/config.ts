@@ -10,6 +10,7 @@ import { Inline } from "./inline.ts";
 import { createRateLimitedFetch } from "./custom-fetch.ts";
 import { Defaults } from "../plugins/defaults.ts";
 import type {
+  Asset,
   BlockFormatter,
   Cache,
   DataFormatter,
@@ -45,7 +46,8 @@ export class Config {
   #inlineFormatters = new Map<string, InlineFormatter>();
   #dataFormatter: DataFormatter | null = null;
   #parsers = new Map<string, Map<string, Parser>>();
-  #assets = new Map<string, { path: string; download: Promise<void> }>();
+  #assets = new Map<string, Asset>();
+  #resolveAsset: (path: string) => string = (path: string) => path;
   #skippers: PageFilter[] = [];
   #deleters: PageFilter[] = [];
 
@@ -433,9 +435,21 @@ export class Config {
     const [_, name, extension] = filename.match(/^([^]*?)(\.?[^.]*)$/) ?? [];
     const asset = `asset-${name ?? ""}-${suffix}${extension ?? ""}`;
     const path = this.getOutputDirectory() + asset;
+    const resolved = this.#resolveAsset(path);
     const download = this.#loadAsset(href, path);
-    this.#assets.set(href, { path, download });
+    this.#assets.set(href, { path, resolved, download });
     return path;
+  }
+
+  /** Similar to `getAssetPath()`, this provides a location (either local or
+   * external) to an asset given a URL to said asset. This returns the same
+   * output location given the same input URL. The resolved asset path is
+   * determined using the resolver set using `setAssetPathResolver()`. */
+  getResolvedAssetPath(assetUrl: URL | string): string {
+    const url = new URL(assetUrl);
+    const { href } = url;
+    this.getAssetPath(href);
+    return this.#assets.get(href).resolved;
   }
 
   /** Load an asset in the background. This is done whenever a local asset path
@@ -448,6 +462,23 @@ export class Config {
     await fs.writeFile(path, bytes);
   }
 
+  /** Resolve raw asset paths to a post-build path. Images referenced by pages
+   * get imported directly under the output directory, but pages are often
+   * processed to end up somewhere else (e.g. in a `/dist/` folder). Images may
+   * also be processed by another tool to be moved to a separate location. This
+   * type of processing causes the file paths used inside page content to be
+   * out-of-sync with where the images are actually located. To mitigate this
+   * issue, a resolver function can be specified here that turns a
+   * (CWD-relative) asset path into a new path for use in page content. */
+  setAssetPathResolver(resolver: (path: string) => string): void {
+    if (typeof resolver != "function") throw error`resolver-not-function`;
+    this.#resolveAsset = resolver;
+  }
+
+  /** Returns a promise that resolves once all assets have been downloaded. An
+   * asset starts downloading whenever a path for it is requested; this method
+   * only waits for all those requests to finish running. It does not itself
+   * cause new requests to be made. */
   async downloadAssets(): Promise<number> {
     const assets = [...this.#assets.values()];
     await Promise.all(assets.map((asset) => asset.download));

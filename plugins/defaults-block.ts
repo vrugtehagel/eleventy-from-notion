@@ -75,7 +75,7 @@ export function DefaultsBlock(config: Config): void {
     Notion.ImageBlockObjectResponse["image"]
   >("image", (data) => {
     const { url } = data.type == "file" ? data.file : data.external;
-    const path = config.getAssetPath(url);
+    const path = config.getResolvedAssetPath(url);
     const caption = config.formatRichText(data.caption);
     return { url, path, caption };
   });
@@ -84,7 +84,7 @@ export function DefaultsBlock(config: Config): void {
     Notion.VideoBlockObjectResponse["video"]
   >("video", (data) => {
     const { url } = data.type == "file" ? data.file : data.external;
-    const path = config.getAssetPath(url);
+    const path = config.getResolvedAssetPath(url);
     const caption = config.formatRichText(data.caption);
     return { url, path, caption };
   });
@@ -93,7 +93,7 @@ export function DefaultsBlock(config: Config): void {
     Notion.PdfBlockObjectResponse["pdf"]
   >("pdf", (data) => {
     const { url } = data.type == "file" ? data.file : data.external;
-    const path = config.getAssetPath(url);
+    const path = config.getResolvedAssetPath(url);
     const caption = config.formatRichText(data.caption);
     return { url, path, caption };
   });
@@ -102,7 +102,7 @@ export function DefaultsBlock(config: Config): void {
     Notion.FileBlockObjectResponse["file"]
   >("file", (data) => {
     const { url } = data.type == "file" ? data.file : data.external;
-    const path = config.getAssetPath(url);
+    const path = config.getResolvedAssetPath(url);
     const caption = config.formatRichText(data.caption);
     return { url, path, caption };
   });

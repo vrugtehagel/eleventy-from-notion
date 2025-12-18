@@ -46,3 +46,13 @@ export type RichText = { plain: string; rich: string };
  * asynchronous. It should return `true` if the filter applies to the page in
  * question (e.g. `true` if a page should be skipped or deleted). */
 export type PageFilter = (page: Page) => boolean | Promise<boolean>;
+
+/** An internal type for asset management. Includes the path to the location of
+ * the asset, relative to the CWD, as well as a "resolved" path for use within
+ * content. The promise under the `download` key resolves once the asset has
+ * finished downloading and is fully present locally on disk. */
+export type Asset = {
+  path: string;
+  resolved: string;
+  download: Promise<void>;
+};

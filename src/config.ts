@@ -429,7 +429,7 @@ export class Config {
     if (cached) return cached.path;
     const encoder = new TextEncoder();
     const bytes = encoder.encode(url.host + url.pathname);
-    const hash = crypto.createHash("sha256").update(bytes).digest("base64");
+    const hash = crypto.createHash("sha256").update(bytes).digest("base64url");
     const suffix = hash.slice(0, 8);
     const filename = url.pathname.split("/").at(-1) ?? "";
     const [_, name, extension] = filename.match(/^([^]*?)(\.?[^.]*)$/) ?? [];

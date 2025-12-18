@@ -449,7 +449,7 @@ export class Config {
     const url = new URL(assetUrl);
     const { href } = url;
     this.getAssetPath(href);
-    return this.#assets.get(href).resolved;
+    return this.#assets.get(href)!.resolved;
   }
 
   /** Load an asset in the background. This is done whenever a local asset path

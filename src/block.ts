@@ -1,4 +1,4 @@
-import * as Notion from "@notionhq/client";
+import type * as Notion from "@notionhq/client";
 import { error } from "./error.ts";
 import type { Config } from "./config.ts";
 import type { Page } from "./page.ts";

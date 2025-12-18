@@ -160,6 +160,11 @@ const messages: Record<string, (...args: string[]) => string> = {
     Import and add the built-in \`Json\` or \`Yaml\` data formatter plugin,
     or specify custom a formatter using \`setDataFormatter()\`.
   `,
+  "resolver-not-function": () => `
+    The value provided to \`setAssetPathResolver()\` was not a function.
+    It should be a function that receives a single parameter, the local asset
+    path, and returns a resolved asset path (both are strings).
+  `,
   "$1-lacks-children": (thing: string) => `
     A ${thing} was asked about its children before it had loaded any.
     This is a bug; please file an issue.

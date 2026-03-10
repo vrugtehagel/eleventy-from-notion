@@ -73,7 +73,7 @@ export class Page {
   #setProperty({ isMeta, from, to, transform }: Property): void {
     const raw = isMeta ? this.getMeta(from) : this.getProperty(from);
     const value = transform ? transform(raw) : raw;
-    if(value === undefined) return;
+    if (value === undefined) return;
     Page.#setNested(this.#frontMatter!, to, value);
   }
 

@@ -17,4 +17,4 @@ export const NoLogger: Logger = new class implements Logger {
   finalize(): void {}
 
   render(): void {}
-}
+}();

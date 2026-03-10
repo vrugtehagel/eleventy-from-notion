@@ -59,7 +59,9 @@ export const StdoutLogger: Logger = new class implements Logger {
     if (this.#actions.total < this.#pages) return lines;
     lines[0] = "| All updated pages processed.";
     const actions = ["imported", "skipped", "deleted"] as const;
-    const results = actions.map(action => `${this.#actions[action]} ${action}`);
+    const results = actions.map((action) =>
+      `${this.#actions[action]} ${action}`
+    );
     lines[1] = "| " + results.join(", ");
     return lines;
   }
@@ -71,7 +73,7 @@ export const StdoutLogger: Logger = new class implements Logger {
   }
 
   #build(): void {
-    this.#lines = []
+    this.#lines = [];
     const lines = this.#lines;
     if (!this.#config) return void lines.push("Loading Notion config");
     lines.push(`Config: ${this.#config}`);
@@ -90,8 +92,8 @@ export const StdoutLogger: Logger = new class implements Logger {
 
   render(): void {
     stdout.moveCursor(0, -this.#lines.length);
-    this.#build()
+    this.#build();
     stdout.clearScreenDown();
     stdout.write(this.#lines.join("\n") + "\n");
   }
-}
+}();

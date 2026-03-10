@@ -28,7 +28,7 @@ export const ConsoleLogger: Logger = new class implements Logger {
     this.#actions.total++;
     this.#actions[action]++;
     let text = "";
-    text += action[0].toUpperCase() + action.slice(1)
+    text += action[0].toUpperCase() + action.slice(1);
     text += " ";
     text += this.#current;
     text += ` (${this.#actions.total} / ${this.#pages})`;
@@ -40,7 +40,7 @@ export const ConsoleLogger: Logger = new class implements Logger {
     const didWork = this.#actions.total != this.#actions.skipped;
     if (didWork) console.log("Notion pages imported successfully!");
     else console.log("Notion import complete; no pages imported!");
-    console.log(`Downloading ${amount} asset${amount == 1 ? '' : 's'}…`);
+    console.log(`Downloading ${amount} asset${amount == 1 ? "" : "s"}…`);
   }
 
   downloadedAssets(amount: number): void {
@@ -49,7 +49,7 @@ export const ConsoleLogger: Logger = new class implements Logger {
   }
 
   finalize(): void {
-    console.log('Notion import done!');
+    console.log("Notion import done!");
   }
 
   render(): void {
@@ -57,4 +57,4 @@ export const ConsoleLogger: Logger = new class implements Logger {
     this.#started = true;
     console.log("Loading Eleventy-to-Notion config…");
   }
-}
+}();

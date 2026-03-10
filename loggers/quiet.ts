@@ -17,8 +17,8 @@ export const QuietLogger: Logger = new class implements Logger {
   downloadedAssets(_amount: number): void {}
 
   finalize(): void {
-    console.log("Notion import complete.")
+    console.log("Notion import complete.");
   }
 
   render(): void {}
-}
+}();

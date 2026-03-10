@@ -1,5 +1,9 @@
 import { fromNotion } from "./index.ts";
-import type { UserConfig } from "@11ty/eleventy";
+
+/** This type has a name for clarity, but is annotating a parameter that is
+ * never being used. It represents the `eleventyConfig` object that Eleventy
+ * passes to plugins. */
+type UserConfig = unknown;
 
 /** The plugin doesn't actually do anything Eleventy-specific, but here's a
  * handy-dandy function to hook the two together. This'll import updated pages

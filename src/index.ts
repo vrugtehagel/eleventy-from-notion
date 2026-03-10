@@ -1,4 +1,6 @@
+import { stdout } from "node:process";
 import { StdoutLogger } from "../loggers/stdout.ts";
+import { ConsoleLogger } from "../loggers/console.ts";
 import { Config } from "./config.ts";
 import type { Logger } from "./types.ts";
 
@@ -8,7 +10,7 @@ import type { Logger } from "./types.ts";
  * disk in the location specified. */
 export async function fromNotion(
   path: string = "./notion.config.js",
-  logger: Logger = StdoutLogger,
+  logger: Logger = stdout?.isTTY ? StdoutLogger : ConsoleLogger,
 ): Promise<void> {
   logger.render();
   const config = await Config.from(path);

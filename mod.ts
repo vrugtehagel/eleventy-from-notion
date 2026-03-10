@@ -11,3 +11,8 @@ export { Json } from "./plugins/json.ts";
 export { Markdown } from "./plugins/markdown.ts";
 export { Yaml } from "./plugins/yaml.ts";
 export { Html } from "./plugins/html.ts";
+
+export { ConsoleLogger } from "./loggers/console.ts";
+export { StdoutLogger } from "./loggers/stdout.ts";
+export { QuietLogger } from "./loggers/quiet.ts";
+export { NoLogger } from "./loggers/none.ts";

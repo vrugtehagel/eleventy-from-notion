@@ -56,3 +56,18 @@ export type Asset = {
   resolved: string;
   download: Promise<void>;
 };
+
+/** A custom (very specific) logger class, to change the way the output is
+ * shown. All methods, except `render()`, are passing information to the
+ * logger; only the `render()` method is called periodically to update the
+ * info on the screen. */
+export interface Logger {
+  loadedConfig(path: string): void
+  setPageAmount(amount: number): void
+  nextPage(name: string): void
+  pageResult(action: "imported" | "skipped" | "deleted"): void
+  setAssetAmount(amount: number): void
+  downloadedAssets(amount: number): void
+  finalize(): void
+  render(): void
+}

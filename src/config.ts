@@ -18,6 +18,7 @@ import type {
   PageFilter,
   Parser,
   Plugin,
+  Property,
   RichText,
 } from "./types.ts";
 
@@ -40,8 +41,7 @@ export class Config {
   #cache: Cache | null = null;
   #dataSourceId: string = "";
   #databaseId: string = "";
-  #properties = new Map<string, string[]>();
-  #meta = new Map<string, string[]>();
+  #properties: Property[] = [];
   #blockFormatters = new Map<string, BlockFormatter>();
   #inlineFormatters = new Map<string, InlineFormatter>();
   #dataFormatter: DataFormatter | null = null;
@@ -271,39 +271,48 @@ export class Config {
    * each output page. The property name is effectively the column name in
    * Notion; it must then be renamed to a key or nested key. A nested key can
    * be specified as an array of keys, such as `["foo", "bar"]` in order to
-   * nest a property under `foo.bar`. */
-  importProperty(property: string, rename: string | string[]): void {
+   * nest a property under `foo.bar`. An optional third argument may be given
+   * to transform the value before it is output as front matter. This argument
+   * should be a function receiving the raw value (as parsed by the relevant
+   * data parser) and should return the transformed value. If nothing
+   * (`undefined`) is returned, the property is omitted from the front matter
+   * entirely. */
+  importProperty(
+    from: string,
+    to: string | string[],
+    transform?: (value: unknown) => unknown,
+  ): void {
     if (this.#running) throw error`cannot-run-${"importProperty"}`;
-    if (typeof property != "string") throw error`property-not-string`;
-    if (typeof rename == "string") rename = [rename];
-    if (!Array.isArray(rename)) throw error`property-rename-not-array`;
-    this.#properties.set(property, rename);
-  }
-
-  /** Get a copy of all properties that have been marked for import. The
-   * returned map maps a property to a normalized array of keys. Modifying the
-   * map does not affect the importing behavior; it is a copy. */
-  getProperties(): Map<string, string[]> {
-    return new Map(this.#properties);
+    if (typeof from != "string") throw error`property-not-string`;
+    if (typeof to == "string") to = [to];
+    if (!Array.isArray(to)) throw error`property-rename-not-array`;
+    this.#properties.push({ isMeta: false, from, to, transform });
   }
 
   /** Similar to importing page properties as front matter, some additional
    * metadata from Notion can be imported, such as the cover image or page
    * icon. These must match (non-nested) keys in the raw API response (as per
-   * the `PageObjectResponse` type from Notion's SDK). */
-  importMeta(meta: string, rename: string | string[]): void {
+   * the `PageObjectResponse` type from Notion's SDK). Like page properties,
+   * an optional third argument may be specified; a function transforming the
+   * raw value into something else before it is being output to the front
+   * matter. */
+  importMeta(
+    from: string,
+    to: string | string[],
+    transform?: (value: unknown) => unknown,
+  ): void {
     if (this.#running) throw error`cannot-run-${"importMetadata"}`;
-    if (typeof meta != "string") throw error`meta-not-string`;
-    if (typeof rename == "string") rename = [rename];
-    if (!Array.isArray(rename)) throw error`meta-rename-not-array`;
-    this.#meta.set(meta, rename);
+    if (typeof from != "string") throw error`meta-not-string`;
+    if (typeof to == "string") to = [to];
+    if (!Array.isArray(to)) throw error`meta-rename-not-array`;
+    this.#properties.push({ isMeta: true, from, to, transform });
   }
 
-  /** Get a copy of all the metadata that has been marked for import. The
-   * returned map maps a property to a normalized array of keys. Modifying the
-   * map does not affect the importing behavior; it is a copy. */
-  getMeta(): Map<string, string[]> {
-    return new Map(this.#meta);
+  /** Get a copy of all properties (including meta properties) that have been
+   * marked for import. The returned map maps a property to a normalized array
+   * of keys. */
+  getProperties(): Property[] {
+    return [...this.#properties];
   }
 
   /** Set a formatter for a specific block type, such as "heading_1" or
@@ -475,14 +484,11 @@ export class Config {
     this.#resolveAsset = resolver;
   }
 
-  /** Returns a promise that resolves once all assets have been downloaded. An
-   * asset starts downloading whenever a path for it is requested; this method
-   * only waits for all those requests to finish running. It does not itself
-   * cause new requests to be made. */
-  async downloadAssets(): Promise<number> {
-    const assets = [...this.#assets.values()];
-    await Promise.all(assets.map((asset) => asset.download));
-    return assets.length;
+  /** Return a list of the download state of all registered assets. This is
+   * represented as a list of promises, each promise resolving when its
+   * corresponding asset has finished downloading. */
+  listAssets(): Array<Promise<void>> {
+    return [...this.#assets.values()].map((asset) => asset.download);
   }
 
   /** Add a filter to skip certain pages from being imported. This can be

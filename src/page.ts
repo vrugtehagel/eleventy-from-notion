@@ -3,6 +3,7 @@ import * as fs from "node:fs/promises";
 import { error } from "./error.ts";
 import type { Config } from "./config.ts";
 import type { Block } from "./block.ts";
+import type { Property } from "./types.ts";
 
 /** Represents a Notion page in its entirety. */
 export class Page {
@@ -13,6 +14,8 @@ export class Page {
   #skipped: boolean = false;
   #deleted: boolean = false;
 
+  /** Within a given object, set a nested property to a value. This is done
+   * recursively. The input object is modified; nothing is returned. */
   static #setNested(
     object: Record<string, unknown>,
     nesting: string[],
@@ -37,9 +40,7 @@ export class Page {
     if (this.#frontMatter) return this.#frontMatter;
     this.#frontMatter = {};
     const properties = this.#config.getProperties();
-    for (const [name, nesting] of properties) this.#setProperty(name, nesting);
-    const meta = this.#config.getMeta();
-    for (const [name, nesting] of meta) this.#setMeta(name, nesting);
+    for (const property of properties) this.#setProperty(property);
     return this.#frontMatter;
   }
 
@@ -56,12 +57,6 @@ export class Page {
     return this.#config.getOutputDirectory() + this.filename;
   }
 
-  /** Set a (potentially nested) property in the front matter. */
-  #setProperty(name: string, nesting: string[]): void {
-    const value = this.getProperty(name);
-    Page.#setNested(this.#frontMatter!, nesting, value);
-  }
-
   /** Retrieve a sibling block relative to a child block. This is used to
    * provide `next` and `previous` getters on blocks; the `Block` interface
    * must also have this method. */
@@ -73,6 +68,15 @@ export class Page {
     return this.#children[index + offset] ?? null;
   }
 
+  /** Set a (potentially nested) property in the front matter, either a regular
+   * property or a meta property. */
+  #setProperty({ isMeta, from, to, transform }: Property): void {
+    const raw = isMeta ? this.getMeta(from) : this.getProperty(from);
+    const value = transform ? transform(raw) : raw;
+    if(value === undefined) return;
+    Page.#setNested(this.#frontMatter!, to, value);
+  }
+
   /** Get a property from the raw Notion page object, formatted as specified by
    * the configured data parser. */
   getProperty(name: string): unknown {
@@ -82,13 +86,6 @@ export class Page {
     const { type } = property;
     const parser = this.#config.getDataParser(type);
     return parser(property[type as keyof typeof property]);
-  }
-
-  /** Set a (potentially nested) property in the front matter based on some
-   * metadata property on the Notion page object. */
-  #setMeta(name: string, nesting: string[]): void {
-    const value = this.getMeta(name);
-    Page.#setNested(this.#frontMatter!, nesting, value);
   }
 
   /** Get a metadata property from the raw Notion page object, formatted as

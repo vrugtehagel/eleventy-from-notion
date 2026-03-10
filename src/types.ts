@@ -29,6 +29,16 @@ export type InlineFormatter<Hint = unknown> = (
   info: { value: Hint },
 ) => string;
 
+/** An internal type for property and meta registrations. They contain the name
+ * for the column to look up, what to map to, and an optional transformation
+ * for the value. */
+export type Property = {
+  isMeta: boolean;
+  from: string;
+  to: string[];
+  transform?: (value: unknown) => unknown;
+};
+
 /** A function to stringify a complex data structure into a string, used for
  * stringifying front matter. If `---` delimiters are desirable for the front
  * matter, this must be included in the returned result. */

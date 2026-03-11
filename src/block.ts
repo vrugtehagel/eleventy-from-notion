@@ -59,12 +59,24 @@ export class Block<Hint = unknown> {
     return this.#body;
   }
 
+  /** Generally, a block's ID is `this.#raw.id`. However, for synced blocks
+   * that point to a different block (i.e. are not themselves the original),
+   * the ID needed to retrieve children is that of its `synced_from` block,
+   * not its own ID. This method retrieves a block's "resolved" ID, that is,
+   * the ID that can be used to retrieve its children. */
+  #getResolvedId(): string {
+    if (this.#raw.type != "synced_block") return this.#raw.id;
+    if (this.#raw.synced_block.synced_from == null) return this.#raw.id;
+    return this.#raw.synced_block.synced_from.block_id;
+  }
+
   /** Get the block's child blocks. This does not have an associated getter. */
   async #getChildren(): Promise<Block[]> {
     if (this.#children != null) return this.#children;
     this.#children = [];
     if (!this.#raw.has_children) return this.#children;
-    this.#children = await this.#config.getBlocks(this.#raw.id, this);
+    const id = this.#getResolvedId();
+    this.#children = await this.#config.getBlocks(id, this);
     return this.#children;
   }
 

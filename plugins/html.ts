@@ -47,7 +47,7 @@ export function Html(config: Config): void {
     return `<details>${summary}${block.body}</details>`;
   });
 
-  config.setBlockFormatter("synced", (block) => {
+  config.setBlockFormatter("synced_block", (block) => {
     return block.body;
   });
 

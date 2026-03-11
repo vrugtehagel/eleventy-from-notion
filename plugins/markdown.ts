@@ -58,7 +58,7 @@ export function Markdown(config: Config): void {
     return result.replaceAll(/ +$/mg, "") + "\n";
   });
 
-  config.setBlockFormatter("synced", (block) => {
+  config.setBlockFormatter("synced_block", (block) => {
     return block.body;
   });
 

@@ -3,6 +3,7 @@ import * as fs from "node:fs/promises";
 import * as process from "node:process";
 import * as crypto from "node:crypto";
 import * as path from "node:path";
+import * as url from "node:url";
 import { error } from "./error.ts";
 import { Page } from "./page.ts";
 import { Block } from "./block.ts";
@@ -55,8 +56,8 @@ export class Config {
    * file path must exist, and it must have a default export that is a function
    * configuring the new `Config` object. */
   static async from(configPath: string): Promise<Config> {
-    const resolvedPath = import.meta.resolve(path.resolve(configPath));
-    const mod = await import(resolvedPath);
+    const resolvedPath = url.pathToFileURL(path.resolve(configPath));
+    const mod = await import(resolvedPath.href);
     const config = new Config();
     config.use(Defaults);
     await mod.default(config);

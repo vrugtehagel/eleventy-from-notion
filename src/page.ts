@@ -23,6 +23,7 @@ export class Page {
   ): void {
     if (nesting.length == 0) throw error`cannot-nest-in-nothing`;
     const [key, ...keys] = nesting;
+    object[key] ??= {};
     const isInvalid = keys.length > 0 && typeof object[key] != "object";
     if (isInvalid) throw error`cannot-nest-in-primitive`;
     else if (keys.length == 0) object[key] = value;

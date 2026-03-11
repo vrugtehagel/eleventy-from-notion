@@ -55,7 +55,8 @@ export class Config {
    * file path must exist, and it must have a default export that is a function
    * configuring the new `Config` object. */
   static async from(configPath: string): Promise<Config> {
-    const mod = await import(path.resolve(process.cwd(), configPath));
+    const resolvedPath = import.meta.resolve(path.resolve(configPath));
+    const mod = await import(resolvedPath);
     const config = new Config();
     config.use(Defaults);
     await mod.default(config);

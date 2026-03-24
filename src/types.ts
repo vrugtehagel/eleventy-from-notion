@@ -63,7 +63,7 @@ export type PageFilter = (page: Page) => boolean | Promise<boolean>;
  * finished downloading and is fully present locally on disk. */
 export type Asset = {
   path: string;
-  resolved: string;
+  filename: string;
   download: Promise<void>;
 };
 

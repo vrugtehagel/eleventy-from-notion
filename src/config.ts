@@ -48,7 +48,7 @@ export class Config {
   #dataFormatter: DataFormatter | null = null;
   #parsers = new Map<string, Map<string, Parser>>();
   #assets = new Map<string, Asset>();
-  #resolveAsset: (path: string) => string = (path: string) => path;
+  #assetPrefix: string = "";
   #skippers: PageFilter[] = [];
   #deleters: PageFilter[] = [];
 
@@ -430,37 +430,29 @@ export class Config {
     throw error`missing-${type}-data-parser`;
   }
 
-  /** Given a certain URL to an asset (like an image), provide a local location
-   * within the output directory. This returns the same output location given
-   * the same URL. */
-  getAssetPath(assetUrl: URL | string): string {
+  /** Load an asset from a specific URL provided by Notion. This both downloads
+   * the asset, writing it to a file asynchronously, while also constructing a
+   * unique name for it. This name is to be written to files instead of the
+   * external URL. */
+  #getAsset(assetUrl: URL | string): Asset {
     const url = new URL(assetUrl);
     const { href } = url;
     const cached = this.#assets.get(href);
-    if (cached) return cached.path;
+    if (cached) return cached;
     const encoder = new TextEncoder();
     const bytes = encoder.encode(url.host + url.pathname);
     const hash = crypto.createHash("sha256").update(bytes).digest("base64url");
     const suffix = hash.slice(0, 8);
-    const filename = url.pathname.split("/").at(-1) ?? "";
-    const [_, name, extension] = filename.match(/^([^]*?)(\.?[^.]*)$/) ?? [];
-    const asset = `asset-${name ?? ""}-${suffix}${extension ?? ""}`;
-    const path = this.getOutputDirectory() + asset;
-    const resolved = this.#resolveAsset(path);
+    let name = url.pathname.split("/").at(-1)!;
+    const extension = name.match(/(?!^)\.[^.]*$/)?.[0] ?? "";
+    if (extension) name = name.slice(0, -extension.length);
+    name = name.replaceAll("%", "0x");
+    const filename = `asset-${name}-${suffix}${extension}`;
+    const path = this.getOutputDirectory() + filename;
     const download = this.#loadAsset(href, path);
-    this.#assets.set(href, { path, resolved, download });
-    return path;
-  }
-
-  /** Similar to `getAssetPath()`, this provides a location (either local or
-   * external) to an asset given a URL to said asset. This returns the same
-   * output location given the same input URL. The resolved asset path is
-   * determined using the resolver set using `setAssetPathResolver()`. */
-  getResolvedAssetPath(assetUrl: URL | string): string {
-    const url = new URL(assetUrl);
-    const { href } = url;
-    this.getAssetPath(href);
-    return this.#assets.get(href)!.resolved;
+    const asset = { path, filename, download };
+    this.#assets.set(href, asset);
+    return asset;
   }
 
   /** Load an asset in the background. This is done whenever a local asset path
@@ -473,17 +465,35 @@ export class Config {
     await fs.writeFile(path, bytes);
   }
 
-  /** Resolve raw asset paths to a post-build path. Images referenced by pages
-   * get imported directly under the output directory, but pages are often
-   * processed to end up somewhere else (e.g. in a `/dist/` folder). Images may
-   * also be processed by another tool to be moved to a separate location. This
-   * type of processing causes the file paths used inside page content to be
-   * out-of-sync with where the images are actually located. To mitigate this
-   * issue, a resolver function can be specified here that turns a
-   * (CWD-relative) asset path into a new path for use in page content. */
-  setAssetPathResolver(resolver: (path: string) => string): void {
-    if (typeof resolver != "function") throw error`resolver-not-function`;
-    this.#resolveAsset = resolver;
+  /** Given a certain URL to an asset (like an image), provide a local location
+   * within the output directory. This returns the same output location given
+   * the same URL. */
+  getAssetPath(assetUrl: URL | string): string {
+    return this.#getAsset(assetUrl).path;
+  }
+
+  /** Similar to `getAssetPath()`, this provides a location (either local or
+   * external) to an asset given a URL to said asset. This returns the same
+   * output location given the same input URL. The resolved asset path is
+   * determined using the resolver set using `setAssetPathResolver()`. */
+  getAssetFilename(assetUrl: URL | string): string {
+    return this.#getAsset(assetUrl).filename;
+  }
+
+  /** Sets a prefix for asset paths, to be used within the outputted templates.
+   * For example, if there is a build system in place that moves all images to
+   * an /img/ folder, the prefix can be set to `"/img/"`. This then results in
+   * the asset references within the templates to be /img/asset-name-hash.ext.
+   * By default, no prefix is used, meaning the images are resolved within the
+   * same directory as the template referenced. */
+  setAssetPrefix(prefix: string): void {
+    if (this.#running) throw error`cannot-run-${"setAssetPrefix"}`;
+    this.#assetPrefix = prefix;
+  }
+
+  getResolvedAssetPath(assetUrl: URL | string): string {
+    const filename = this.getAssetFilename(assetUrl);
+    return this.#assetPrefix + filename;
   }
 
   /** Return a list of the download state of all registered assets. This is

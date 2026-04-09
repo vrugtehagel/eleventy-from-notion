@@ -44,7 +44,7 @@ export class Block<Hint = unknown> {
     if (this.#formatted != null) return this.#formatted;
     await this.#getBody();
     const formatter = this.#config.getBlockFormatter(this.type);
-    this.#formatted = formatter(this);
+    this.#formatted = await formatter(this);
     return this.#formatted!;
   }
 

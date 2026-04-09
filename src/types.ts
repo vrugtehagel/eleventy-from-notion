@@ -19,7 +19,7 @@ export type Plugin = (config: Config) => unknown;
  * formatters. */
 export type BlockFormatter<Hint = unknown> = (
   block: Block<Hint>,
-) => string;
+) => string | Promise<string>;
 
 /** A function to format a certain type of rich text into a string. Used for
  * custom inline formatting. The value provided depends on the type; it has

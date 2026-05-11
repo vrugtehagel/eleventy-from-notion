@@ -1,12 +1,12 @@
 {
   "version": "5",
   "specifiers": {
-    "npm:@notionhq/client@^5.1.0": "5.1.0",
+    "npm:@notionhq/client@^5.20.0": "5.20.0",
     "npm:@types/node@*": "24.0.10"
   },
   "npm": {
-    "@notionhq/client@5.1.0": {
-      "integrity": "sha512-YYVjXYk1XwKQ4XIh+iGjaaXOGHxaDgB3UaGnDMyrZ3X9UiYQsZpzPIvTuhvp97os8a5W5kTQFsyq77+I+COOVQ=="
+    "@notionhq/client@5.20.0": {
+      "integrity": "sha512-MS0DFSfHPLZ0wi+e9mOP16gCCYbWAkaiMuu/rVK9KxDlKac4oAgHReOfTglcd77g/nlg78snp+KB7fNWP75bEw=="
     },
     "@types/node@24.0.10": {
       "integrity": "sha512-ENHwaH+JIRTDIEEbDK6QSQntAYGtbvdDXnMXnZaZ6k13Du1dPMmprkEHIL7ok2Wl2aZevetwTAb5S+7yIF+enA==",
@@ -20,7 +20,7 @@
   },
   "workspace": {
     "dependencies": [
-      "npm:@notionhq/client@^5.1.0"
+      "npm:@notionhq/client@^5.20.0"
     ]
   }
 }

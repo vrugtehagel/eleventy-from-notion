@@ -8,6 +8,7 @@ import { error } from "./error.ts";
 import { Page } from "./page.ts";
 import { Block } from "./block.ts";
 import { Inline } from "./inline.ts";
+import { Queue } from "./queue.ts";
 import { createRateLimitedFetch } from "./custom-fetch.ts";
 import { Defaults } from "../plugins/defaults.ts";
 import type {
@@ -48,7 +49,10 @@ export class Config {
   #dataFormatter: DataFormatter | null = null;
   #parsers = new Map<string, Map<string, Parser>>();
   #assets = new Map<string, Asset>();
+  #computeAssetPath?: (url: string) => string;
+  #downloadAsset?: (url: string) => Promise<void>;
   #assetPrefix: string = "";
+  #downloadQueue = new Queue();
   #skippers: PageFilter[] = [];
   #deleters: PageFilter[] = [];
 
@@ -430,15 +434,89 @@ export class Config {
     throw error`missing-${type}-data-parser`;
   }
 
-  /** Load an asset from a specific URL provided by Notion. This both downloads
-   * the asset, writing it to a file asynchronously, while also constructing a
-   * unique name for it. This name is to be written to files instead of the
-   * external URL. */
-  #getAsset(assetUrl: URL | string): Asset {
-    const url = new URL(assetUrl);
-    const { href } = url;
-    const cached = this.#assets.get(href);
+  /** Register a function to compute a filename based on a URL. The URL is
+   * usually provided by Notion (through e.g. an image block) but it can be
+   * used for any valid URL. The value returned by the callback is used as the
+   * path to write within imported content. By default, the URL is hashed, and
+   * the computed asset path gets the form "asset-[name]-[hash].[extension]",
+   * optionally with a prefix specified through `setAssetPrefix()`. Note that
+   * this prefix from `setAssetPrefix()` only applies when using the default
+   * callback. */
+  computeAssetPath(getter: (url: string) => string): void {
+    if (this.#running) throw error`cannot-run-${"setAssetPath"}`;
+    this.#computeAssetPath = getter;
+  }
+
+  /** Register a function to download, process and write an asset, given an
+   * external URL. It should return a promise that resolves when the file has
+   * been written to the file system. By default, the file is downloaded as-is
+   * and written into the output directory under the filename consistent with
+   * `getAssetPath()` (although any directories returned by `getAssetPath()`
+   * are ignored). */
+  downloadAsset(getter: (url: string) => Promise<void>): void {
+    if (this.#running) throw error`cannot-run-${"downloadAsset"}`;
+    this.#downloadAsset = getter;
+  }
+
+  /** Get the asset object for some URL. Returns an existing reference to an
+   * asset if it has been seen before, or creates and returns a new one.
+   * Getting an asset using this method does not cause it to start downloading;
+   * use `getAssetPath()` with a falsy `stealth` argument, or the private
+   * `#getAssetDownload()` method, to trigger a download. */
+  #getAsset(assetUrl: string): Asset {
+    const url = assetUrl.toString();
+    const cached = this.#assets.get(url);
     if (cached) return cached;
+    this.#computeAssetPath ??= (url) => this.#defaultComputeAssetPath(url);
+    const path = this.#computeAssetPath(url);
+    const asset = { path };
+    this.#assets.set(url, asset);
+    return asset;
+  }
+
+  /** Gets an asset path to use within imported content given an external URL.
+   * Optionally, the `stealth` argument may be set to `true` to prevent the
+   * asset from being downloaded right away. If all `getAssetPath()` calls for
+   * a certain asset have been stealthy, the asset is imported after all pages
+   * were successfully imported. */
+  getAssetPath(assetUrl: URL | string, stealth?: boolean): string {
+    const url = assetUrl.toString();
+    const asset = this.#getAsset(url);
+    if (asset.download || stealth) return asset.path;
+    this.#getAssetDownload(url);
+    return asset.path;
+  }
+
+  /** Return the progress for an asset being downloaded. If the asset wasn't
+   * being processed, this triggers it to start. The returned promise resolves
+   * when the asset is completely finished processing, including being written
+   * to disk. */
+  #getAssetDownload(assetUrl: string): Promise<void> {
+    this.#downloadAsset ??= (url) => this.#defaultDownloadAsset(url);
+    const downloadAsset = this.#downloadAsset;
+    const asset = this.#getAsset(assetUrl);
+    asset.download ??= this.#downloadQueue.add(() => downloadAsset(assetUrl));
+    return asset.download;
+  }
+
+  /** Sets a prefix for asset paths, to be used within the output templates.
+   * For example, if there is a build system in place that moves all images to
+   * an /img/ folder, the prefix can be set to "/img/". This then results in
+   * the asset references within the templates to be /img/asset-name-hash.ext.
+   * By default, no prefix is used, meaning assets are resolved within the same
+   * directory as the templates referencing them. This method does nothing if a
+   * custom asset path function was configured using `computeAssetPath()`. */
+  setAssetPrefix(prefix: string): void {
+    if (this.#running) throw error`cannot-run-${"setAssetPrefix"}`;
+    this.#assetPrefix = prefix;
+  }
+
+  /** The default function to use for computing asset paths. Creates a hash
+   * from the external asset URL, then constructs a file path of the form
+   * "asset-[name]-[hash].[extension]", optionally prefixed with some static
+   * string configured using `setAssetPrefix()`. */
+  #defaultComputeAssetPath(assetUrl: string): string {
+    const url = new URL(assetUrl);
     const encoder = new TextEncoder();
     const bytes = encoder.encode(url.host + url.pathname);
     const hash = crypto.createHash("sha256").update(bytes).digest("base64url");
@@ -448,59 +526,26 @@ export class Config {
     if (extension) name = name.slice(0, -extension.length);
     name = name.replaceAll("%", "0x");
     const filename = `asset-${name}-${suffix}${extension}`;
-    const path = this.getOutputDirectory() + filename;
-    const download = this.#loadAsset(href, path);
-    const asset = { path, filename, download };
-    this.#assets.set(href, asset);
-    return asset;
+    return this.#assetPrefix + filename;
   }
 
-  /** Load an asset in the background. This is done whenever a local asset path
-   * is requested; it is fetched immediately, but a local path is immediately
-   * provided, allowing the page import to continue while assets are fetched
-   * in parallel. */
-  async #loadAsset(assetUrl: string, path: string): Promise<void> {
+  /** The default asset downloader function. It reads the filename (regardless
+   * of the directory) using `getAssetPath()`, then downloads the asset and
+   * writes it under said file name within the configured output directory. */
+  async #defaultDownloadAsset(assetUrl: string): Promise<void> {
+    const path = this.getAssetPath(assetUrl);
+    const filename = path.split("/").at(-1);
     const response = await fetch(assetUrl);
     const bytes = await response.bytes();
-    await fs.writeFile(path, bytes);
-  }
-
-  /** Given a certain URL to an asset (like an image), provide a local location
-   * within the output directory. This returns the same output location given
-   * the same URL. */
-  getAssetPath(assetUrl: URL | string): string {
-    return this.#getAsset(assetUrl).path;
-  }
-
-  /** Similar to `getAssetPath()`, this provides a location (either local or
-   * external) to an asset given a URL to said asset. This returns the same
-   * output location given the same input URL. The resolved asset path is
-   * determined using the resolver set using `setAssetPathResolver()`. */
-  getAssetFilename(assetUrl: URL | string): string {
-    return this.#getAsset(assetUrl).filename;
-  }
-
-  /** Sets a prefix for asset paths, to be used within the outputted templates.
-   * For example, if there is a build system in place that moves all images to
-   * an /img/ folder, the prefix can be set to `"/img/"`. This then results in
-   * the asset references within the templates to be /img/asset-name-hash.ext.
-   * By default, no prefix is used, meaning the images are resolved within the
-   * same directory as the template referenced. */
-  setAssetPrefix(prefix: string): void {
-    if (this.#running) throw error`cannot-run-${"setAssetPrefix"}`;
-    this.#assetPrefix = prefix;
-  }
-
-  getResolvedAssetPath(assetUrl: URL | string): string {
-    const filename = this.getAssetFilename(assetUrl);
-    return this.#assetPrefix + filename;
+    const directory = this.getOutputDirectory();
+    await fs.writeFile(directory + filename, bytes);
   }
 
   /** Return a list of the download state of all registered assets. This is
    * represented as a list of promises, each promise resolving when its
    * corresponding asset has finished downloading. */
   listAssets(): Array<Promise<void>> {
-    return [...this.#assets.values()].map((asset) => asset.download);
+    return [...this.#assets.keys()].map((url) => this.#getAssetDownload(url));
   }
 
   /** Add a filter to skip certain pages from being imported. This can be

@@ -125,7 +125,7 @@ export function DefaultsData(config: Config): void {
     if (!data) return null;
     const { type } = data;
     const { url } = type == "file" ? data.file : data.external;
-    const path = config.getResolvedAssetPath(url);
+    const path = config.getAssetPath(url, true);
     return path;
   });
 

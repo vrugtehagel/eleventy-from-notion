@@ -461,8 +461,8 @@ export class Config {
   /** Get the asset object for some URL. Returns an existing reference to an
    * asset if it has been seen before, or creates and returns a new one.
    * Getting an asset using this method does not cause it to start downloading;
-   * use `getAssetPath()` with a falsy `stealth` argument, or the private
-   * `#getAssetDownload()` method, to trigger a download. */
+   * use `getAssetPath()` with a falsy `stealth` argument, or use the
+   * `getAssetDownload()` method, to trigger a download. */
   #getAsset(assetUrl: string): Asset {
     const url = assetUrl.toString();
     const cached = this.#assets.get(url);
@@ -483,7 +483,7 @@ export class Config {
     const url = assetUrl.toString();
     const asset = this.#getAsset(url);
     if (asset.download || stealth) return asset.path;
-    this.#getAssetDownload(url);
+    this.getAssetDownload(url);
     return asset.path;
   }
 
@@ -491,7 +491,7 @@ export class Config {
    * being processed, this triggers it to start. The returned promise resolves
    * when the asset is completely finished processing, including being written
    * to disk. */
-  #getAssetDownload(assetUrl: string): Promise<void> {
+  getAssetDownload(assetUrl: string): Promise<void> {
     this.#downloadAsset ??= (url) => this.#defaultDownloadAsset(url);
     const downloadAsset = this.#downloadAsset;
     const asset = this.#getAsset(assetUrl);
@@ -545,7 +545,7 @@ export class Config {
    * represented as a list of promises, each promise resolving when its
    * corresponding asset has finished downloading. */
   listAssets(): Array<Promise<void>> {
-    return [...this.#assets.keys()].map((url) => this.#getAssetDownload(url));
+    return [...this.#assets.keys()].map((url) => this.getAssetDownload(url));
   }
 
   /** Add a filter to skip certain pages from being imported. This can be

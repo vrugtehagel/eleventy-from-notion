@@ -13,7 +13,7 @@ export type Cache = {
 
 /** A plugin receives a single argument; the `config` object. This is exactly
  * the same object as the one passed to the Notion configuration function. */
-export type Plugin = (config: Config) => unknown;
+export type Plugin<Options> = (config: Config, options?: Options) => unknown;
 
 /** A function to format a block into a string. Used for custom block
  * formatters. */

@@ -77,11 +77,13 @@ export class Config {
 
   /** Use a plugin. Plugins are functions exactly like the main configuration
    * function; they receive the `Config` object as argument and can help
-   * simplify and separate configuration. The return value of a plugin is
-   * ignored. This method is only available in "config" mode. */
-  use(plugin: Plugin): void {
+   * simplify and separate configuration. An additional options object may
+   * be provided, passed as second argument to the plugin itself. The return
+   * value of a plugin is ignored. This method is only available in "config"
+   * mode. */
+  use<Options>(plugin: Plugin<Options>, pluginOptions?: Options): void {
     if (this.#running) throw error`cannot-run-${"use"}`;
-    plugin(this);
+    plugin(this, pluginOptions);
   }
 
   /** Sets some options to pass to the underlying Notion `Client`, which is

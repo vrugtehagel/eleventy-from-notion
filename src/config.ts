@@ -33,7 +33,7 @@ import type {
  * possible to retrieve formatters, parsers, metadata, etcetera, but it is no
  * longer possible to use most setters. For example, you can not change the
  * integration secret halfway through a build. */
-export class Config {
+export class Config extends EventTarget {
   #running: boolean = false;
   #client: Notion.Client | null = null;
   #clientOptions: ConstructorParameters<typeof Notion.Client>[0];

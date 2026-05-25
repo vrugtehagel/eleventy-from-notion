@@ -18,6 +18,7 @@ export async function fromNotion(
   const timestamp = Date.now();
   logger.render();
   const pages = await config.listUpdatedPages();
+  config.dispatchEvent(new Event("pageslisted"));
   logger.setPageAmount(pages.length);
   for (const page of pages) {
     logger.nextPage(page.filename);
@@ -27,6 +28,7 @@ export async function fromNotion(
     else if (page.deleted) logger.pageResult("deleted");
     else logger.pageResult("imported");
   }
+  config.dispatchEvent(new Event("pagesimported"));
   const assets = config.listAssets();
   logger.setAssetAmount(assets.length);
   logger.render();
@@ -41,8 +43,10 @@ export async function fromNotion(
     logger.render();
   }
   logger.downloadedAssets(assets.length);
+  config.dispatchEvent(new Event("assetsimported"));
   logger.render();
   await config.setLastUpdated(timestamp);
   logger.finalize();
   logger.render();
+  config.dispatchEvent(new Event("end"));
 }

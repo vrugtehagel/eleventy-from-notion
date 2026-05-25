@@ -37,7 +37,7 @@ export default function (eleventyConfig) {
 ```
 
 If you'd like to use the default path, the options object can be omitted
-entirely. The plugin does not take any other options in this form; all remaining
+entirely. Other than the path and optionally a custom `logger`, the remaining
 configuration is done in your Notion config file. The syntax used in the Notion
 config file closely resembles that of your Eleventy config; here's an example.
 
@@ -89,13 +89,11 @@ the `NOTION_INTEGRATION_SECRET` environment variable.
 Next, we'll need to set up a data source containing pages to import. The
 integration does not automatically have access to your entire workspace, but
 instead, you need to "connect" the integration to a page, which then gives the
-integration access to said page and all pages under it. There are a few ways to
-specify this data source, but no matter how you specify it, each entry in the
-database should be a regular page (which will be imported). To add the
-integration to the database page, click the "•••" in the corner of the page and
-select "Connections", then find the integration you configured and select it.
-Then, in your Notion configuration, provide the data source to the plugin in one
-of the following ways:
+integration access to said page and all pages under it. To add the integration
+to the database page, click the "•••" in the corner of the page and select
+"Connections", then find the integration you configured and select it. Then, in
+your Notion configuration, provide the data source to the plugin in one of the
+following ways:
 
 - By data source ID. This is the preferred method, as it avoids some additional
   work for the plugin. To retrieve the data source ID for a table, click the
@@ -103,7 +101,7 @@ of the following ways:
   locate the table in question, then click the "•••" to reveal the "Copy data
   source ID" button. Then add it in your Notion config using
   `notionConfig.setDataSourceId(…)`.
-- By a URL point at a database. Since a database can contain multiple data
+- By a URL pointing at a database. Since a database can contain multiple data
   sources, the plugin will automatically select the first data source. Set this
   in your Notion config using `notionConfig.setDatabaseIdFromUrl(…)`. The
   database ID is then extracted from the URL.
@@ -115,8 +113,8 @@ of the following ways:
 
 Next, we can optionally configure the page properties to import. Your data
 source in Notion likely has columns; when navigating to a page, they are
-presented as what in Eleventy would be front matter. You may import any number
-of these using
+presented in Notion's UI as, what in Eleventy would be, front matter. You may
+import any number of these using
 
 ```js
 notionConfig.importProperty(notionName, eleventyName);

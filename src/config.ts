@@ -32,7 +32,14 @@ import type {
  * running, the config object switches to "run" mode. In this mode, it is
  * possible to retrieve formatters, parsers, metadata, etcetera, but it is no
  * longer possible to use most setters. For example, you can not change the
- * integration secret halfway through a build. */
+ * integration secret halfway through a build.
+ * This object also fires some events to mark certain stages in the import
+ * process. First, it dispatches a "pageslisted" event when it has determined
+ * the pages to be imported (although not it has not decided what to do with
+ * them, e.g. they could all be skipped). Next, once all pages have been
+ * written to disk, the "pagesimported" event fires. Similarly, after that,
+ * the "assetsimported" event fires. At the very end, when the plugin is
+ * completely finished, the "end" event is dispatched. */
 export class Config extends EventTarget {
   #running: boolean = false;
   #client: Notion.Client | null = null;

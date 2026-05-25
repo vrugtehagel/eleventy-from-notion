@@ -1,4 +1,5 @@
 import { fromNotion } from "./index.ts";
+import type { Logger } from "./types.ts";
 
 /** This type has a name for clarity, but is annotating a parameter that is
  * never being used. It represents the `eleventyConfig` object that Eleventy
@@ -11,7 +12,7 @@ type UserConfig = unknown;
  * a build is triggered as part of a change during serving or watching. */
 export async function EleventyFromNotion(
   _userConfig: UserConfig,
-  options: { config?: string },
+  options: { config?: string; logger?: Logger },
 ): Promise<void> {
-  await fromNotion(options.config);
+  await fromNotion(options.config, options.logger);
 }

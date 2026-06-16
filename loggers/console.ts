@@ -44,6 +44,7 @@ export const ConsoleLogger: Logger = new class implements Logger {
   }
 
   downloadedAssets(amount: number): void {
+    console.log(`Asset downloaded (${amount} / ${this.#assets})`);
     if (amount < this.#assets) return;
     console.log(`All assets downloaded.`);
   }

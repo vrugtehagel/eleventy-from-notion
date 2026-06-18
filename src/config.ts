@@ -185,6 +185,7 @@ export class Config extends EventTarget {
     const json = await fs.readFile(path, "utf8").catch(() => null);
     const cache = JSON.parse(json || "{}");
     if (typeof cache != "object") throw error`cache-corrupted`;
+    if (cache == null) throw error`cache-corrupted`;
     if (Array.isArray(cache)) throw error`cache-corrupted`;
     this.#cache = cache;
     return cache;

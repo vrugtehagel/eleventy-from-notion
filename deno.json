@@ -4,7 +4,7 @@
   "license": "MIT",
   "exports": "./mod.ts",
   "imports": {
-    "@notionhq/client": "npm:@notionhq/client@^5.20"
+    "@notionhq/client": "npm:@notionhq/client@^5.22"
   },
   "publish": {
     "include": [

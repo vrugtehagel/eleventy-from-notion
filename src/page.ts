@@ -58,6 +58,11 @@ export class Page {
     return this.#config.getOutputDirectory() + this.filename;
   }
 
+  /** Get the original Notion page ID. */
+  get id(): string {
+    return this.#raw.id;
+  }
+
   /** Retrieve a sibling block relative to a child block. This is used to
    * provide `next` and `previous` getters on blocks; the `Block` interface
    * must also have this method. */

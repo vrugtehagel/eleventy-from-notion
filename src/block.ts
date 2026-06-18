@@ -108,6 +108,11 @@ export class Block<Hint = unknown> {
     return this.#info!;
   }
 
+  /** Get the original Notion block ID. */
+  get id(): string {
+    return this.#raw.id;
+  }
+
   /** Get a block's content. This is different from its body; for example, a
    * "bulleted_list_item" will have content (the text in the first line), but
    * can additionally have a body, which is effectively further content. It

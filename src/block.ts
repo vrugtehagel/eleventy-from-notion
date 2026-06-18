@@ -10,7 +10,7 @@ import type { Page } from "./page.ts";
 export class Block<Hint = unknown> {
   #raw: Notion.BlockObjectResponse;
   #config: Config;
-  #parent: Block | Page | null = null;
+  #parent: Block | Page;
   #children: Block[] | null = null;
   #info: Hint | null = null;
   #content: string | null = null;
@@ -88,12 +88,12 @@ export class Block<Hint = unknown> {
 
   /** Get the previous sibling block, or `null` if there isn't one. */
   get previous(): Block | null {
-    return this.#parent?.getSibling(this, -1) ?? null;
+    return this.#parent.getSibling(this, -1);
   }
 
   /** Get the next sibling block, or `null` if their isn't one. */
   get next(): Block | null {
-    return this.#parent?.getSibling(this, 1) ?? null;
+    return this.#parent.getSibling(this, 1);
   }
 
   /** Get a block's info as defined by the block parser for this block's type.

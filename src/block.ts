@@ -96,6 +96,11 @@ export class Block<Hint = unknown> {
     return this.#parent.getSibling(this, 1);
   }
 
+  /** Return the `Page` instance this block is associated with. */
+  get page(): Page {
+    return this.#parent.page;
+  }
+
   /** Get a block's info as defined by the block parser for this block's type.
    * A block parser _must_ be defined; if no block parser for this type exists,
    * an error is thrown (within `.getBlockParser()`). */
